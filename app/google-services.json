@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "80538788939",
+    "firebase_url": "https://ailrun-48dd2.firebaseio.com",
+    "project_id": "ailrun-48dd2",
+    "storage_bucket": "ailrun-48dd2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:80538788939:android:da9aadcaee387292",
+        "android_client_info": {
+          "package_name": "luis_santiago.com.ailrun"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "80538788939-gcd373pvm25lbmm64h75rjn0b3jmkuho.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "luis_santiago.com.ailrun",
+            "certificate_hash": "942b0d3096717ee3a93bf69ebd79068a4de9c723"
+          }
+        },
+        {
+          "client_id": "80538788939-r3aue1mmcjbeo0e64271g4btapu0dqbe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBljbevyVN5dbl0RYyBvdwP71J6WN0CBOE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "80538788939-r3aue1mmcjbeo0e64271g4btapu0dqbe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
