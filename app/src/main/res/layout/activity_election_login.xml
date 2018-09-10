@@ -6,12 +6,20 @@
     android:layout_height="match_parent"
     tools:context=".ElectionLoginActivity">
 
+    <ProgressBar
+        android:id="@+id/progress_bar_loading"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="-3dp"
+        android:indeterminate="true" />
 
     <com.yqritc.scalablevideoview.ScalableVideoView
         android:id="@+id/video_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.9"
+        android:alpha="0.6"
         app:scalableType="centerCrop" />
 
     <FrameLayout
@@ -19,6 +27,6 @@
         android:layout_height="match_parent"
         android:background="@drawable/shadow" />
 
-    <include layout="@layout/login_initial"/>
+    <include layout="@layout/login_initial" />
 
 </RelativeLayout>
