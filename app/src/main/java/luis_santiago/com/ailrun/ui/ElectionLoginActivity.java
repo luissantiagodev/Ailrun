@@ -1,6 +1,8 @@
-package luis_santiago.com.ailrun;
+package luis_santiago.com.ailrun.ui;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,26 +21,38 @@ import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.yqritc.scalablevideoview.ScalableVideoView;
 
 import java.io.IOException;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 
+import luis_santiago.com.ailrun.Constants;
+import luis_santiago.com.ailrun.R;
 import luis_santiago.com.ailrun.adapters.IntroTextAdapter;
-import luis_santiago.com.ailrun.ui.LoginActivity;
+import luis_santiago.com.ailrun.helpers.FirebaseHelper;
 
 public class ElectionLoginActivity extends AppCompatActivity implements View.OnClickListener, FacebookCallback<LoginResult> {
 
     private ScalableVideoView videoView;
-    private Button loginEmail;
+//    private Button loginEmail;
     private LoginButton facebuttonLogin;
     private Button googleButton;
     private Button mainContainerFaceButton;
     private GoogleSignInClient mGoogleSignInClient;
     private CallbackManager mCallbackManager = CallbackManager.Factory.create();
+    private FirebaseHelper firebaseHelper = FirebaseHelper.getInstance();
     private ProgressBar mProgressbar;
+    private final int RC_SIGN_IN = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +72,7 @@ public class ElectionLoginActivity extends AppCompatActivity implements View.OnC
     }
 
     private void initListenersForButtons() {
-        loginEmail.setOnClickListener(this);
+//        loginEmail.setOnClickListener(this);
         googleButton.setOnClickListener(this);
         mainContainerFaceButton.setOnClickListener(this);
         facebuttonLogin.setOnClickListener(this);
@@ -95,12 +109,12 @@ public class ElectionLoginActivity extends AppCompatActivity implements View.OnC
 
     private void init() {
         videoView = findViewById(R.id.video_background);
-        loginEmail = findViewById(R.id.button_email);
+//        loginEmail = findViewById(R.id.button_email);
         googleButton = findViewById(R.id.button);
         mainContainerFaceButton = findViewById(R.id.hidden_button);
         facebuttonLogin = findViewById(R.id.login_button_facebook);
         mProgressbar = findViewById(R.id.progress_bar_loading);
-        loginEmail = findViewById(R.id.login);
+//        loginEmail = findViewById(R.id.login);
     }
 
     private void loadVideo() {
@@ -119,11 +133,11 @@ public class ElectionLoginActivity extends AppCompatActivity implements View.OnC
         int currentId = view.getId();
         loadProgressBar();
         switch (currentId) {
-            case R.id.button_email: {
-//                startActivity(new Intent(getBaseContext(), CreateAccountActivity.class));
-                stopLoading();
-                break;
-            }
+//            case R.id.button_email: {
+////                startActivity(new Intent(getBaseContext(), CreateAccountActivity.class));
+//                stopLoading();
+//                break;
+//            }
 
             case R.id.hidden_button: {
                 facebuttonLogin.performClick();
@@ -132,24 +146,79 @@ public class ElectionLoginActivity extends AppCompatActivity implements View.OnC
             }
 
             case R.id.button: {
-//                signInWithGoogle();
+                signInWithGoogle();
                 loadProgressBar();
                 break;
             }
 
-            case R.id.login: {
-//                startActivity(new Intent(getBaseContext(), LoginActivity.class));
-                stopLoading();
-            }
+//            case R.id.login: {
+////                startActivity(new Intent(getBaseContext(), LoginActivity.class));
+//                stopLoading();
+//            }
         }
 
-        startActivity(new Intent(this , MapsActivity.class));
+
+    }
+
+    private void signInWithGoogle() {
+        if(mGoogleSignInClient != null){
+            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
+        }
     }
 
     @Override
     public void onSuccess(LoginResult loginResult) {
-
+        AuthCredential credential = FacebookAuthProvider.getCredential(loginResult.getAccessToken().getToken());
+        firebaseHelper.signInWithCredential(credential, new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    loginSuccessful();
+                } else {
+                    //showError();
+                    Log.e("TAG", "signInWithCredential:failure", task.getException());
+                    stopLoading();
+                }
+            }
+        });
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        mCallbackManager.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            Task task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                GoogleSignInAccount account = (GoogleSignInAccount) task.getResult(ApiException.class);
+                firebaseAuthWithGoogle(account);
+            } catch (Throwable e) {
+                Log.e("Home Activity", "Google sign in failed", e);
+                Log.e("Home Activity", "Google sign in failed", e.fillInStackTrace());
+                e.printStackTrace();
+                //showError();
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        firebaseHelper.signInWithCredential(credential, new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    loginSuccessful();
+                } else {
+                    //showError();
+                    Log.e("TAG", "signInWithCredential:failure", task.getException());
+                    Log.e("TAG", "ERROR GOOGLE", task.getException());
+                }
+            }
+        });
+    }
+
 
     @Override
     public void onCancel() {
@@ -168,5 +237,11 @@ public class ElectionLoginActivity extends AppCompatActivity implements View.OnC
     private void stopLoading() {
         mProgressbar.setVisibility(View.INVISIBLE);
     }
+
+    private void loginSuccessful() {
+        startActivity(new Intent(this, HomeActivity.class));
+        stopLoading();
+    }
+
 
 }

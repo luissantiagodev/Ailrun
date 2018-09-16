@@ -7,6 +7,9 @@ import java.util.ArrayList;
  */
 public class Constants {
 
+    public static final long LOCATION_INTERVAL = 1000;
+    public static final long LOCATION_FASTEST_INTERVAL = 1000;
+
     public static ArrayList<String> phrases(){
         ArrayList<String> phrases = new ArrayList<>();
         phrases.add("“Quien compite con los demás es ganador, pero quien compite consigo mismo es poderoso.”");
@@ -15,5 +18,9 @@ public class Constants {
         return phrases;
     }
 
+
     public final int RC_SIGN_IN = 4;
+    public static String EXTRA_LATITUDE = "extra_longitud";
+    public static String EXTRA_LONGITUDE = "extra_longitude";
+
 }
