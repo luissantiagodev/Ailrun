@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,14 +22,22 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.MarkerOptions;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import luis_santiago.com.ailrun.Constants;
+import luis_santiago.com.ailrun.POJOS.User;
 import luis_santiago.com.ailrun.R;
+import luis_santiago.com.ailrun.helpers.FirebaseHelper;
+import luis_santiago.com.ailrun.helpers.GlideApp;
+import luis_santiago.com.ailrun.interfaces.IUser;
 import luis_santiago.com.ailrun.services.LocationService;
 
 public class HomeActivity extends AppCompatActivity
@@ -38,6 +47,7 @@ public class HomeActivity extends AppCompatActivity
     private GoogleMap mMap;
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
     private boolean mAlreadyStartedService = false;
+    private CircleImageView circleImageView;
 
 
     @Override
@@ -45,26 +55,24 @@ public class HomeActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
+        circleImageView = findViewById(R.id.circle_image_view);
         toolbar.setBackgroundColor(Color.TRANSPARENT);
         toolbar.setTitle("AilRun");
         setSupportActionBar(toolbar);
-        // Status bar :: Transparent
         Window window = this.getWindow();
-
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.setStatusBarColor(Color.TRANSPARENT);
         }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -74,19 +82,26 @@ public class HomeActivity extends AppCompatActivity
         LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.e(TAG, "LAT" + intent.getExtras().getString(Constants.EXTRA_LATITUDE));
-                Log.e(TAG, "LONG" + intent.getExtras().getString(Constants.EXTRA_LONGITUDE));
                 Double latitude = Double.parseDouble(intent.getStringExtra(Constants.EXTRA_LATITUDE));
                 Double longitude = Double.parseDouble(intent.getStringExtra(Constants.EXTRA_LONGITUDE));
-                Log.e(TAG, "GOT DATA FROM BROADCAST");
                 Log.e(TAG, "LONG" + longitude);
                 Log.e(TAG, "LAT" + latitude);
-                if (latitude != null && longitude != null) {
-                    LatLng latLng = new LatLng(latitude, longitude);
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12.0f));
-                }
+                LatLng latLng = new LatLng(latitude, longitude);
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 28.0f));
             }}, new IntentFilter(LocationService.ACTION_LOCATION_BROADCAST)
         );
+
+
+        FirebaseHelper.getInstance().getUserInfo(new IUser() {
+            @Override
+            public void onUserLoaded(User user) {
+                GlideApp
+                        .with(HomeActivity.this)
+                        .load(user.getUrlImage())
+                        .placeholder(R.drawable.logo_ailrun)
+                        .into(circleImageView);
+            }
+        });
     }
 
 
@@ -133,7 +148,7 @@ public class HomeActivity extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -142,15 +157,31 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.maps));
+
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
+        }
+
+
         // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng sydney = new LatLng(18.141822, -94.482907);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap.setMaxZoomPreference(28);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         mMap.setMyLocationEnabled(true);
-        mMap.setMaxZoomPreference(24);
+        mMap.setMaxZoomPreference(28);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setCompassEnabled(false);
     }
