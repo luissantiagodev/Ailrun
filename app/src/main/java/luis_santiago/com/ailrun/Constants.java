@@ -8,7 +8,13 @@ import java.util.ArrayList;
 public class Constants {
 
     public static final long LOCATION_INTERVAL = 1000;
+    public static final long LOCATION_INTERVAL_LONG = 100000;
     public static final long LOCATION_FASTEST_INTERVAL = 1000;
+    public final int RC_SIGN_IN = 4;
+    public static String EXTRA_LATITUDE = "extra_longitud";
+    public static String EXTRA_LONGITUDE = "extra_longitude";
+
+    public static final float MAX_ZOOM_MAP = 18.0f;
 
     public static ArrayList<String> phrases(){
         ArrayList<String> phrases = new ArrayList<>();
@@ -19,8 +25,5 @@ public class Constants {
     }
 
 
-    public final int RC_SIGN_IN = 4;
-    public static String EXTRA_LATITUDE = "extra_longitud";
-    public static String EXTRA_LONGITUDE = "extra_longitude";
 
 }

@@ -34,12 +34,12 @@
         android:layout_height="40dp" />
 
     <Button
+        android:id="@+id/start_button"
+        style="@style/AppTheme.Button.Google"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        style="@style/AppTheme.Button.Google"
-        android:text="Iniciar carrera"
         android:layout_margin="10dp"
-        />
+        android:text="Iniciar carrera" />
 
 </RelativeLayout>

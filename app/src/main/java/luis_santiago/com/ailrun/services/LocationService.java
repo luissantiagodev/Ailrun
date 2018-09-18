@@ -27,11 +27,12 @@ import static luis_santiago.com.ailrun.Constants.EXTRA_LONGITUDE;
 public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks , GoogleApiClient.OnConnectionFailedListener , com.google.android.gms.location.LocationListener{
 
     private String TAG = LocationService.class.getSimpleName();
-    private LocationManager mLocationManager = null;
-    GoogleApiClient mLocationClient;
-    LocationRequest mLocationRequest = new LocationRequest();
-    public static final String ACTION_LOCATION_BROADCAST = LocationService.class.getName() + "LocationBroadcast";
 
+    private GoogleApiClient mLocationClient;
+
+    private LocationRequest mLocationRequest = new LocationRequest();
+
+    public static final String ACTION_LOCATION_BROADCAST = LocationService.class.getName() + "LocationBroadcast";
 
     @Nullable
     @Override
@@ -46,7 +47,6 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-
         mLocationRequest.setInterval(Constants.LOCATION_INTERVAL);
         mLocationRequest.setFastestInterval(Constants.LOCATION_FASTEST_INTERVAL);
         int priority = LocationRequest.PRIORITY_HIGH_ACCURACY;
