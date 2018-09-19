@@ -10,9 +10,11 @@ public class Constants {
     public static final long LOCATION_INTERVAL = 1000;
     public static final long LOCATION_INTERVAL_LONG = 100000;
     public static final long LOCATION_FASTEST_INTERVAL = 1000;
+    public static final int CODE_START_RACE = 5;
     public final int RC_SIGN_IN = 4;
     public static String EXTRA_LATITUDE = "extra_longitud";
     public static String EXTRA_LONGITUDE = "extra_longitude";
+    public static String EXTRA_MS_LAPSE = "extra_time_lapsed";
 
     public static final float MAX_ZOOM_MAP = 18.0f;
 

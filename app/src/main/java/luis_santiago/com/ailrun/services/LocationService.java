@@ -17,9 +17,12 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import luis_santiago.com.ailrun.Constants;
+import luis_santiago.com.ailrun.helpers.ChronometerRunning;
 
 import static luis_santiago.com.ailrun.Constants.EXTRA_LATITUDE;
 import static luis_santiago.com.ailrun.Constants.EXTRA_LONGITUDE;
+import static luis_santiago.com.ailrun.Constants.EXTRA_MS_LAPSE;
+
 
 /**
  * Created by Luis Santiago on 9/12/18.
@@ -34,10 +37,19 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
     public static final String ACTION_LOCATION_BROADCAST = LocationService.class.getName() + "LocationBroadcast";
 
+    private ChronometerRunning mChronometer;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mChronometer = new ChronometerRunning(LocationService.this);
+        mChronometer.start();
     }
 
     @Override
@@ -55,22 +67,22 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         return Service.START_STICKY;
     }
 
-
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
             Log.e(TAG , "LATITUD" + location.getLatitude());
             Log.e(TAG , "Longitud" + location.getLongitude());
-            //Send result to activities
-            sendMessageToUI(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
+            Log.e(TAG , "TIME LAPSE" + mChronometer.getMsElapsed());
+            sendMessageToUI(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()) , mChronometer.getMsElapsed());
         }
     }
 
-    private void sendMessageToUI(String lat, String lng) {
+    private void sendMessageToUI(String lat, String lng , int tmsLapse) {
         Log.d(TAG, "Sending info...");
         Intent intent = new Intent(ACTION_LOCATION_BROADCAST);
         intent.putExtra(EXTRA_LATITUDE, lat);
         intent.putExtra(EXTRA_LONGITUDE, lng);
+        intent.putExtra(EXTRA_MS_LAPSE , tmsLapse);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 

@@ -32,6 +32,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -43,6 +44,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import luis_santiago.com.ailrun.Constants;
@@ -58,7 +61,7 @@ public class HomeActivity extends AppCompatActivity
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener {
+        com.google.android.gms.location.LocationListener, View.OnClickListener {
 
     private static final String TAG = HomeActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -70,6 +73,13 @@ public class HomeActivity extends AppCompatActivity
     private boolean isServiceStarted = false;
     private BottomSheetBehavior sheetBehavior;
     private LinearLayout layoutBottomSheet;
+    private Button stop_button;
+    private Button pause;
+    private LatLng initialLocation;
+    private LatLng lastLocation;
+    private Polyline mPolyline;
+    private TextView time_lapse;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,33 +105,40 @@ public class HomeActivity extends AppCompatActivity
         layoutBottomSheet = findViewById(R.id.bottom_sheet);
         sheetBehavior = BottomSheetBehavior.from(layoutBottomSheet);
         sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-
         sheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 switch (newState) {
-                    case BottomSheetBehavior.STATE_HIDDEN:
+                    case BottomSheetBehavior.STATE_HIDDEN: {
+                        Log.e(TAG, "Bottom hidden");
                         break;
+                    }
                     case BottomSheetBehavior.STATE_EXPANDED: {
-
+                        Log.e(TAG, "Bottom expanded");
+                        break;
                     }
-                    break;
                     case BottomSheetBehavior.STATE_COLLAPSED: {
-
+                        Log.e(TAG, "Bottom collapsed");
+                        sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                        break;
                     }
-                    break;
-                    case BottomSheetBehavior.STATE_DRAGGING:
+
+                    case BottomSheetBehavior.STATE_DRAGGING: {
+                        Log.e(TAG, "Bottom sheek dragging");
                         break;
-                    case BottomSheetBehavior.STATE_SETTLING:
+                    }
+
+                    case BottomSheetBehavior.STATE_SETTLING: {
+                        Log.e(TAG, "Bottom settling");
                         break;
+                    }
                 }
             }
 
             @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-
-            }
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {}
         });
+        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
 
@@ -130,27 +147,32 @@ public class HomeActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         startButton = findViewById(R.id.start_button);
-        startButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!isServiceStarted) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        Window window = HomeActivity.this.getWindow();
-                        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                        window.setStatusBarColor(HomeActivity.this.getResources().getColor(R.color.red));
-                    }
+        startButton.setOnClickListener(this);
+        stop_button = findViewById(R.id.stop_button);
+        stop_button.setOnClickListener(this);
+        time_lapse = findViewById(R.id.time_lapse);
+    }
 
-                    isServiceStarted = true;
-                    if (sheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-                        sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                    } else {
-                        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                    }
-                }
-                //startService(new Intent(HomeActivity.this, LocationService.class));
-            }
-        });
+    private void changeStatusBarColor(int color) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = HomeActivity.this.getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(color);
+        }
+    }
+
+
+    private void cancelRun() {
+        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        startButton.setVisibility(View.VISIBLE);
+        isServiceStarted = false;
+        changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.colorPrimaryDark));
+        if(mPolyline != null){
+            mPolyline.remove();
+        }
+        mMap.clear();
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(Constants.MAX_ZOOM_MAP));
     }
 
     private void setUpGoogleClient() {
@@ -171,12 +193,20 @@ public class HomeActivity extends AppCompatActivity
         Double longitude = Double.parseDouble(intent.getStringExtra(Constants.EXTRA_LONGITUDE));
         Log.e(TAG, "LONG" + longitude);
         Log.e(TAG, "LAT" + latitude);
-        animateToPlace(new LatLng(latitude, longitude));
+        Log.e(TAG, "TIME" + intent.getExtras().toString());
+        lastLocation = new LatLng(latitude, longitude);
+//        time_lapse.setText(String.valueOf(timeLapse));
+        animateToPlace(lastLocation);
+        mPolyline = mMap.addPolyline(new PolylineOptions()
+                .add(initialLocation, lastLocation)
+                .width(5)
+                .color(Color.RED));
     }
 
     private void animateToPlace(LatLng latLng) {
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, Constants.MAX_ZOOM_MAP));
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
+
 
     private void setUpWindow() {
         Window window = this.getWindow();
@@ -301,18 +331,19 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        animateToPlace(new LatLng(location.getLatitude(), location.getLongitude()));
+        initialLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        animateToPlace(initialLocation);
         LocationServices.FusedLocationApi.removeLocationUpdates(mLocationClient, this);
     }
 
 
-    private void ShowWarningDialogue() {
+    private void showWarningDialogue() {
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setMessage("Estas seguro de cancelar esta carrera?")
                 .setPositiveButton("Terminar", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-
+                        cancelRun();
                     }
                 })
                 .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
@@ -325,5 +356,43 @@ public class HomeActivity extends AppCompatActivity
                 .create();
         dialog.show();
 
+    }
+
+    @Override
+    public void onClick(View view) {
+        int currentItem = view.getId();
+        switch (currentItem) {
+            case R.id.start_button: {
+                if (!isServiceStarted) {
+                    startActivityForResult(new Intent(HomeActivity.this , PrepareRunActivity.class), Constants.CODE_START_RACE);
+                }
+                break;
+            }
+
+            case R.id.stop_button: {
+                if (isServiceStarted) {
+                    showWarningDialogue();
+                }
+                break;
+            }
+        }
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == Constants.CODE_START_RACE){
+            startRun();
+        }
+    }
+
+    private void startRun() {
+        changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.red));
+        sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        startButton.setVisibility(View.INVISIBLE);
+        startService(new Intent(HomeActivity.this, LocationService.class));
+        isServiceStarted = true;
+        mMap.animateCamera(CameraUpdateFactory.zoomBy(22f));
     }
 }
