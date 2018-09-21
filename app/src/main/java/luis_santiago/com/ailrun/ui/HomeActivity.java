@@ -96,9 +96,18 @@ public class HomeActivity extends AppCompatActivity
                     new BroadcastReceiver() {
                         @Override
                         public void onReceive(Context context, Intent intent) {
-                            handleReceiveBroadCast(context, intent);
+                            handleReceiveBroadCast(intent);
                         }
                     }, new IntentFilter(LocationService.ACTION_LOCATION_BROADCAST)
+            );
+
+            LocalBroadcastManager.getInstance(this).registerReceiver(
+                    new BroadcastReceiver() {
+                        @Override
+                        public void onReceive(Context context, Intent intent) {
+                            handleReceiveTimeBroadcast(intent);
+                        }
+                    }, new IntentFilter(LocationService.ACTION_TIME_BROADCAST)
             );
         }
 
@@ -141,6 +150,9 @@ public class HomeActivity extends AppCompatActivity
         sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
+    private void handleReceiveTimeBroadcast(Intent intent){
+        Log.e(TAG  , intent.getExtras().toString() + "");
+    }
 
     private void init() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -188,7 +200,7 @@ public class HomeActivity extends AppCompatActivity
         mLocationClient.connect();
     }
 
-    private void handleReceiveBroadCast(Context context, Intent intent) {
+    private void handleReceiveBroadCast(Intent intent) {
         Double latitude = Double.parseDouble(intent.getStringExtra(Constants.EXTRA_LATITUDE));
         Double longitude = Double.parseDouble(intent.getStringExtra(Constants.EXTRA_LONGITUDE));
         Log.e(TAG, "LONG" + longitude);

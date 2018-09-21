@@ -4,8 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,7 +17,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import luis_santiago.com.ailrun.Constants;
-import luis_santiago.com.ailrun.helpers.ChronometerRunning;
 
 import static luis_santiago.com.ailrun.Constants.EXTRA_LATITUDE;
 import static luis_santiago.com.ailrun.Constants.EXTRA_LONGITUDE;
@@ -37,7 +36,12 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
     public static final String ACTION_LOCATION_BROADCAST = LocationService.class.getName() + "LocationBroadcast";
 
-    private ChronometerRunning mChronometer;
+    public static final String ACTION_TIME_BROADCAST =  LocationService.class.getName() + "TimeBroadcast";
+
+    private CountDownTimer countDownTimer;
+
+    private Long currentMiliseconds = 0L;
+
 
     @Nullable
     @Override
@@ -48,8 +52,20 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     @Override
     public void onCreate() {
         super.onCreate();
-        mChronometer = new ChronometerRunning(LocationService.this);
-        mChronometer.start();
+        countDownTimer = new CountDownTimer(Constants.MAX_LIMIT_TIME_RUNNING , 1000) {
+            @Override
+            public void onTick(long miliseconds) {
+                Log.e(TAG , "TICKINNG");
+                currentMiliseconds += 1000;
+                sendCurrentTimeLapse(currentMiliseconds);
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        };
+        countDownTimer.start();
     }
 
     @Override
@@ -72,17 +88,22 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         if (location != null) {
             Log.e(TAG , "LATITUD" + location.getLatitude());
             Log.e(TAG , "Longitud" + location.getLongitude());
-            Log.e(TAG , "TIME LAPSE" + mChronometer.getMsElapsed());
-            sendMessageToUI(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()) , mChronometer.getMsElapsed());
+            sendMessageToUI(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
         }
     }
 
-    private void sendMessageToUI(String lat, String lng , int tmsLapse) {
+
+    private void sendCurrentTimeLapse(Long currentMiliseconds){
+        Intent intent = new Intent(ACTION_TIME_BROADCAST);
+        intent.putExtra(EXTRA_MS_LAPSE , currentMiliseconds);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    private void sendMessageToUI(String lat, String lng) {
         Log.d(TAG, "Sending info...");
         Intent intent = new Intent(ACTION_LOCATION_BROADCAST);
         intent.putExtra(EXTRA_LATITUDE, lat);
         intent.putExtra(EXTRA_LONGITUDE, lng);
-        intent.putExtra(EXTRA_MS_LAPSE , tmsLapse);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 

@@ -15,9 +15,9 @@ public class Constants {
     public static String EXTRA_LATITUDE = "extra_longitud";
     public static String EXTRA_LONGITUDE = "extra_longitude";
     public static String EXTRA_MS_LAPSE = "extra_time_lapsed";
+    public static Long MAX_LIMIT_TIME_RUNNING = 9000000000000000000L;
 
     public static final float MAX_ZOOM_MAP = 18.0f;
-
     public static ArrayList<String> phrases(){
         ArrayList<String> phrases = new ArrayList<>();
         phrases.add("“Quien compite con los demás es ganador, pero quien compite consigo mismo es poderoso.”");
