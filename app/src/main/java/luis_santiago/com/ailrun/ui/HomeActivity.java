@@ -56,6 +56,8 @@ import luis_santiago.com.ailrun.helpers.GlideApp;
 import luis_santiago.com.ailrun.interfaces.IUser;
 import luis_santiago.com.ailrun.services.LocationService;
 
+import static luis_santiago.com.ailrun.Constants.EXTRA_MS_LAPSE;
+
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback,
@@ -151,7 +153,12 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void handleReceiveTimeBroadcast(Intent intent){
-        Log.e(TAG  , intent.getExtras().toString() + "");
+        Log.e(TAG  , intent.getExtras().toString() + "TIMEEEEE From ui");
+        Long msPassed = intent.getExtras().getLong(EXTRA_MS_LAPSE) / 1000;
+        long minutes = msPassed / 60;
+        long seconds = msPassed % 60;
+        time_lapse.setText(String.format("%02d", minutes) + ":" + String.format("%02d" , seconds));
+        Log.e(TAG  , String.valueOf(intent.getExtras().getLong(EXTRA_MS_LAPSE)));
     }
 
     private void init() {
@@ -185,6 +192,7 @@ public class HomeActivity extends AppCompatActivity
         }
         mMap.clear();
         mMap.animateCamera(CameraUpdateFactory.zoomTo(Constants.MAX_ZOOM_MAP));
+        stopService(new Intent(HomeActivity.this, LocationService.class));
     }
 
     private void setUpGoogleClient() {

@@ -55,7 +55,6 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         countDownTimer = new CountDownTimer(Constants.MAX_LIMIT_TIME_RUNNING , 1000) {
             @Override
             public void onTick(long miliseconds) {
-                Log.e(TAG , "TICKINNG");
                 currentMiliseconds += 1000;
                 sendCurrentTimeLapse(currentMiliseconds);
             }
