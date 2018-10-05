@@ -56,6 +56,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
             @Override
             public void onTick(long miliseconds) {
                 currentMiliseconds += 1000;
+                Log.e("LOCATION SERVICE" , "Sending time:" + currentMiliseconds);
                 sendCurrentTimeLapse(currentMiliseconds);
             }
 
@@ -112,6 +113,12 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     public void onConnected(@Nullable Bundle bundle) {
         Log.e(TAG , "Google client connected");
         LocationServices.FusedLocationApi.requestLocationUpdates(mLocationClient , mLocationRequest , this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG , "SERVICE IS BEING KILLED");
     }
 
     @Override

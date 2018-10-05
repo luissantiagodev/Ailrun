@@ -81,6 +81,8 @@ public class HomeActivity extends AppCompatActivity
     private LatLng lastLocation;
     private Polyline mPolyline;
     private TextView time_lapse;
+    private long miliSecondsPassed;
+    private boolean isPause;
 
 
     @Override
@@ -102,7 +104,6 @@ public class HomeActivity extends AppCompatActivity
                         }
                     }, new IntentFilter(LocationService.ACTION_LOCATION_BROADCAST)
             );
-
             LocalBroadcastManager.getInstance(this).registerReceiver(
                     new BroadcastReceiver() {
                         @Override
@@ -155,6 +156,7 @@ public class HomeActivity extends AppCompatActivity
     private void handleReceiveTimeBroadcast(Intent intent){
         Log.e(TAG  , intent.getExtras().toString() + "TIMEEEEE From ui");
         Long msPassed = intent.getExtras().getLong(EXTRA_MS_LAPSE) / 1000;
+        miliSecondsPassed = msPassed;
         long minutes = msPassed / 60;
         long seconds = msPassed % 60;
         time_lapse.setText(String.format("%02d", minutes) + ":" + String.format("%02d" , seconds));
@@ -170,6 +172,9 @@ public class HomeActivity extends AppCompatActivity
         stop_button = findViewById(R.id.stop_button);
         stop_button.setOnClickListener(this);
         time_lapse = findViewById(R.id.time_lapse);
+        pause = findViewById(R.id.pause_button);
+        pause.setOnClickListener(this);
+
     }
 
     private void changeStatusBarColor(int color) {
@@ -375,7 +380,6 @@ public class HomeActivity extends AppCompatActivity
                 .setTitle("Cancelar carrera")
                 .create();
         dialog.show();
-
     }
 
     @Override
@@ -394,6 +398,18 @@ public class HomeActivity extends AppCompatActivity
                     showWarningDialogue();
                 }
                 break;
+            }
+
+
+            case R.id.pause_button :{
+                if(isPause){
+                    pause.setText("Continuar");
+                    //TODO: START SERVICE WITH EXTRAS
+                }else{
+                    pause.setText("Pausar");
+                    stopService(new Intent(HomeActivity.this , LocationService.class));
+                }
+                isPause = !isPause;
             }
         }
     }
