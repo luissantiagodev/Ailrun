@@ -82,6 +82,7 @@ public class HomeActivity extends AppCompatActivity
     private Polyline mPolyline;
     private TextView time_lapse;
     private long miliSecondsPassed;
+    private Intent serviceIntent;
     private boolean isPause;
 
 
@@ -151,6 +152,7 @@ public class HomeActivity extends AppCompatActivity
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {}
         });
         sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        serviceIntent = new Intent(HomeActivity.this , LocationService.class);
     }
 
     private void handleReceiveTimeBroadcast(Intent intent){
@@ -220,7 +222,6 @@ public class HomeActivity extends AppCompatActivity
         Log.e(TAG, "LAT" + latitude);
         Log.e(TAG, "TIME" + intent.getExtras().toString());
         lastLocation = new LatLng(latitude, longitude);
-//        time_lapse.setText(String.valueOf(timeLapse));
         animateToPlace(lastLocation);
         mPolyline = mMap.addPolyline(new PolylineOptions()
                 .add(initialLocation, lastLocation)
@@ -402,12 +403,13 @@ public class HomeActivity extends AppCompatActivity
 
 
             case R.id.pause_button :{
-                if(isPause){
+                if(!isPause){
                     pause.setText("Continuar");
-                    //TODO: START SERVICE WITH EXTRAS
+                    Intent intent = new Intent(Constants.STOP_SERVICE_BROADCAST);
+                    intent.putExtra(Constants.EXTRAS_STATE_TIME , true);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
                 }else{
                     pause.setText("Pausar");
-                    stopService(new Intent(HomeActivity.this , LocationService.class));
                 }
                 isPause = !isPause;
             }
@@ -427,7 +429,7 @@ public class HomeActivity extends AppCompatActivity
         changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.red));
         sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         startButton.setVisibility(View.INVISIBLE);
-        startService(new Intent(HomeActivity.this, LocationService.class));
+        startService(serviceIntent);
         isServiceStarted = true;
         mMap.animateCamera(CameraUpdateFactory.zoomBy(22f));
     }

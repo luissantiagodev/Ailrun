@@ -2,7 +2,10 @@ package luis_santiago.com.ailrun.services;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -66,6 +69,16 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
             }
         };
         countDownTimer.start();
+
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        countDownTimer.cancel();
+                    }
+                }, new IntentFilter(Constants.STOP_SERVICE_BROADCAST)
+        );
     }
 
     @Override
@@ -113,12 +126,6 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     public void onConnected(@Nullable Bundle bundle) {
         Log.e(TAG , "Google client connected");
         LocationServices.FusedLocationApi.requestLocationUpdates(mLocationClient , mLocationRequest , this);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.e(TAG , "SERVICE IS BEING KILLED");
     }
 
     @Override
