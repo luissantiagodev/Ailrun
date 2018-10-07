@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
@@ -16,7 +15,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -46,6 +44,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.Arrays;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import luis_santiago.com.ailrun.Constants;
@@ -84,6 +84,7 @@ public class HomeActivity extends AppCompatActivity
     private long miliSecondsPassed;
     private Intent serviceIntent;
     private boolean isPause;
+    private TextView distanceDifferenceTextView;
 
 
     @Override
@@ -149,31 +150,35 @@ public class HomeActivity extends AppCompatActivity
             }
 
             @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {}
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+            }
         });
         sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        serviceIntent = new Intent(HomeActivity.this , LocationService.class);
+        serviceIntent = new Intent(HomeActivity.this, LocationService.class);
     }
 
-    private void handleReceiveTimeBroadcast(Intent intent){
-        Log.e(TAG  , intent.getExtras().toString() + "TIMEEEEE From ui");
+    private void handleReceiveTimeBroadcast(Intent intent) {
+        Log.e(TAG, intent.getExtras().toString() + "TIMEEEEE From ui");
         Long msPassed = intent.getExtras().getLong(EXTRA_MS_LAPSE) / 1000;
         miliSecondsPassed = msPassed;
         long minutes = msPassed / 60;
         long seconds = msPassed % 60;
-        time_lapse.setText(String.format("%02d", minutes) + ":" + String.format("%02d" , seconds));
-        Log.e(TAG  , String.valueOf(intent.getExtras().getLong(EXTRA_MS_LAPSE)));
+        time_lapse.setText(String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
+        Log.e(TAG, String.valueOf(intent.getExtras().getLong(EXTRA_MS_LAPSE)));
     }
 
     private void init() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
         startButton = findViewById(R.id.start_button);
         startButton.setOnClickListener(this);
         stop_button = findViewById(R.id.stop_button);
         stop_button.setOnClickListener(this);
         time_lapse = findViewById(R.id.time_lapse);
+        distanceDifferenceTextView = findViewById(R.id.km);
         pause = findViewById(R.id.pause_button);
         pause.setOnClickListener(this);
 
@@ -194,7 +199,7 @@ public class HomeActivity extends AppCompatActivity
         startButton.setVisibility(View.VISIBLE);
         isServiceStarted = false;
         changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.colorPrimaryDark));
-        if(mPolyline != null){
+        if (mPolyline != null) {
             mPolyline.remove();
         }
         mMap.clear();
@@ -223,10 +228,22 @@ public class HomeActivity extends AppCompatActivity
         Log.e(TAG, "TIME" + intent.getExtras().toString());
         lastLocation = new LatLng(latitude, longitude);
         animateToPlace(lastLocation);
+        if(mPolyline != null){
+            mPolyline.remove();
+            mMap.clear();
+        }
         mPolyline = mMap.addPolyline(new PolylineOptions()
                 .add(initialLocation, lastLocation)
                 .width(5)
                 .color(Color.RED));
+
+        float[] results = new float[1];
+        Location.distanceBetween(initialLocation.latitude, initialLocation.longitude,
+                lastLocation.latitude, lastLocation.longitude, results);
+
+        String distance = String.format("%.2f", results[0]);
+        distanceDifferenceTextView.setText(distance+ " mts");
+        Log.e("HOME ACTIVITY" , "DISTANCE BETWEEN:" + Arrays.toString(results));
     }
 
     private void animateToPlace(LatLng latLng) {
@@ -389,7 +406,7 @@ public class HomeActivity extends AppCompatActivity
         switch (currentItem) {
             case R.id.start_button: {
                 if (!isServiceStarted) {
-                    startActivityForResult(new Intent(HomeActivity.this , PrepareRunActivity.class), Constants.CODE_START_RACE);
+                    startActivityForResult(new Intent(HomeActivity.this, PrepareRunActivity.class), Constants.CODE_START_RACE);
                 }
                 break;
             }
@@ -402,15 +419,17 @@ public class HomeActivity extends AppCompatActivity
             }
 
 
-            case R.id.pause_button :{
-                if(!isPause){
+            case R.id.pause_button: {
+                Intent intent = new Intent(Constants.STOP_SERVICE_BROADCAST);
+                if (!isPause) {
                     pause.setText("Continuar");
-                    Intent intent = new Intent(Constants.STOP_SERVICE_BROADCAST);
-                    intent.putExtra(Constants.EXTRAS_STATE_TIME , true);
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-                }else{
+                    intent.putExtra(Constants.EXTRAS_STATE_TIME, true);
+                } else {
                     pause.setText("Pausar");
+                    intent.putExtra(Constants.EXTRAS_STATE_TIME, false);
                 }
+
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
                 isPause = !isPause;
             }
         }
@@ -420,7 +439,7 @@ public class HomeActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == Constants.CODE_START_RACE){
+        if (requestCode == Constants.CODE_START_RACE) {
             startRun();
         }
     }
@@ -431,6 +450,6 @@ public class HomeActivity extends AppCompatActivity
         startButton.setVisibility(View.INVISIBLE);
         startService(serviceIntent);
         isServiceStarted = true;
-        mMap.animateCamera(CameraUpdateFactory.zoomBy(22f));
+        //mMap.animateCamera(CameraUpdateFactory.zoomBy(Constants.MAX_ZOOM_MAP));
     }
 }
