@@ -1,5 +1,7 @@
 package luis_santiago.com.ailrun;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 
 /**
@@ -11,15 +13,15 @@ public class Constants {
     public static final long LOCATION_INTERVAL_LONG = 100000;
     public static final long LOCATION_FASTEST_INTERVAL = 1000;
     public static final int CODE_START_RACE = 5;
+    public static final LatLng DEFAULT_LOCATION = new LatLng(18.141822, -94.482907);
+    public static Long MAX_LIMIT_TIME_RUNNING = 9000000000000000000L;
     public static final String STOP_SERVICE_BROADCAST = "stop_service_broadcast";
-    public final int RC_SIGN_IN = 4;
-    public static String EXTRA_LATITUDE = "extra_longitud";
+    public static String EXTRA_LATITUDE = "extra_latitude";
     public static String EXTRA_LONGITUDE = "extra_longitude";
     public static String EXTRA_MS_LAPSE = "extra_time_lapsed";
-    public static Long MAX_LIMIT_TIME_RUNNING = 9000000000000000000L;
     public static final String EXTRAS_STATE_TIME = "state_time";
-
     public static final float MAX_ZOOM_MAP = 18.0f;
+
     public static ArrayList<String> phrases(){
         ArrayList<String> phrases = new ArrayList<>();
         phrases.add("“Quien compite con los demás es ganador, pero quien compite consigo mismo es poderoso.”");
@@ -27,7 +29,4 @@ public class Constants {
         phrases.add("“Correr es un deporte mental… y todos nosotros estamos locos”");
         return phrases;
     }
-
-
-
 }

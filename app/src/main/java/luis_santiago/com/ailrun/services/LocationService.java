@@ -69,7 +69,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
                         } else {
                             setUpTimer(currentMilliseconds);
                         }
-                        mIsPaused  = isPaused;
+                        mIsPaused = isPaused;
                     }
                 }, new IntentFilter(Constants.STOP_SERVICE_BROADCAST)
         );
@@ -120,22 +120,19 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     }
 
 
-    private void sendCurrentTimeLapse(Long currentMiliseconds) {
+    private void sendCurrentTimeLapse(long currentMilliseconds) {
         Intent intent = new Intent(ACTION_TIME_BROADCAST);
-        intent.putExtra(EXTRA_MS_LAPSE, currentMiliseconds);
+        intent.putExtra(EXTRA_MS_LAPSE, (long) currentMilliseconds);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     private void sendMessageToUI(String lat, String lng) {
-        Log.d(TAG, "Sending info...");
         Intent intent = new Intent(ACTION_LOCATION_BROADCAST);
         intent.putExtra(EXTRA_LATITUDE, lat);
         intent.putExtra(EXTRA_LONGITUDE, lng);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-
-    @SuppressLint("MissingPermission")
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.e(TAG, "Google client connected");
@@ -150,5 +147,13 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.e(TAG, "Connection failed");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(countDownTimer != null){
+            countDownTimer.cancel();
+        }
     }
 }

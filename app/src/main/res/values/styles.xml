@@ -39,6 +39,12 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
 
+    <style name="AppTheme.Button.Accent" parent="Widget.AppCompat.Button.Colored">
+        <item name="background">@drawable/ripple_accent</item>
+        <item name="android:background">@drawable/ripple_accent</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
     <style name="AppTheme.Button.Normal" parent="Widget.AppCompat.Button.Colored">
         <item name="background">@drawable/ripple_register_button</item>
         <item name="android:background">@drawable/ripple_register_button</item>

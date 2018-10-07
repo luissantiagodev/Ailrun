@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -45,15 +46,21 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import luis_santiago.com.ailrun.Constants;
 import luis_santiago.com.ailrun.POJOS.User;
 import luis_santiago.com.ailrun.R;
+import luis_santiago.com.ailrun.Tools;
 import luis_santiago.com.ailrun.helpers.FirebaseHelper;
 import luis_santiago.com.ailrun.helpers.GlideApp;
 import luis_santiago.com.ailrun.interfaces.IUser;
+import luis_santiago.com.ailrun.interfaces.OnAcceptListener;
 import luis_santiago.com.ailrun.services.LocationService;
 
 import static luis_santiago.com.ailrun.Constants.EXTRA_MS_LAPSE;
@@ -81,10 +88,11 @@ public class HomeActivity extends AppCompatActivity
     private LatLng lastLocation;
     private Polyline mPolyline;
     private TextView time_lapse;
-    private long miliSecondsPassed;
     private Intent serviceIntent;
+    private ImageButton location_button;
     private boolean isPause;
     private TextView distanceDifferenceTextView;
+    private ArrayList<LatLng> points;
 
 
     @Override
@@ -96,32 +104,41 @@ public class HomeActivity extends AppCompatActivity
         setUpWindow();
         setUpUserImage();
         init();
-        setUpGoogleClient();
+        setUpButtons();
+        setBottomSheet();
         if (checkLocationAvailable()) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(
-                    new BroadcastReceiver() {
-                        @Override
-                        public void onReceive(Context context, Intent intent) {
-                            handleReceiveBroadCast(intent);
-                        }
-                    }, new IntentFilter(LocationService.ACTION_LOCATION_BROADCAST)
-            );
-            LocalBroadcastManager.getInstance(this).registerReceiver(
-                    new BroadcastReceiver() {
-                        @Override
-                        public void onReceive(Context context, Intent intent) {
-                            handleReceiveTimeBroadcast(intent);
-                        }
-                    }, new IntentFilter(LocationService.ACTION_TIME_BROADCAST)
-            );
+            listenForBroadcast();
+            setUpGoogleClient();
         }
+        serviceIntent = new Intent(HomeActivity.this, LocationService.class);
+    }
 
-        layoutBottomSheet = findViewById(R.id.bottom_sheet);
+    private void listenForBroadcast() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        handleReceiveBroadCast(intent);
+                    }
+                }, new IntentFilter(LocationService.ACTION_LOCATION_BROADCAST)
+        );
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        handleReceiveTimeBroadcast(intent);
+                    }
+                }, new IntentFilter(LocationService.ACTION_TIME_BROADCAST)
+        );
+    }
+
+    private void setBottomSheet() {
         sheetBehavior = BottomSheetBehavior.from(layoutBottomSheet);
         sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         sheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+            public void onStateChanged(@NonNull View view, int newState) {
                 switch (newState) {
                     case BottomSheetBehavior.STATE_HIDDEN: {
                         Log.e(TAG, "Bottom hidden");
@@ -150,21 +167,26 @@ public class HomeActivity extends AppCompatActivity
             }
 
             @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+            public void onSlide(@NonNull View view, float v) {
+
             }
         });
-        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        serviceIntent = new Intent(HomeActivity.this, LocationService.class);
+    }
+
+    private void setUpButtons() {
+        startButton.setOnClickListener(this);
+        stop_button.setOnClickListener(this);
+        pause.setOnClickListener(this);
+        location_button.setOnClickListener(this);
     }
 
     private void handleReceiveTimeBroadcast(Intent intent) {
-        Log.e(TAG, intent.getExtras().toString() + "TIMEEEEE From ui");
+        Log.e(TAG, intent.getExtras().toString() + "Time to User Interface");
         Long msPassed = intent.getExtras().getLong(EXTRA_MS_LAPSE) / 1000;
-        miliSecondsPassed = msPassed;
         long minutes = msPassed / 60;
         long seconds = msPassed % 60;
-        time_lapse.setText(String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
-        Log.e(TAG, String.valueOf(intent.getExtras().getLong(EXTRA_MS_LAPSE)));
+        String template = String.format("%02d", minutes) + ":" + String.format("%02d", seconds);
+        time_lapse.setText(template);
     }
 
     private void init() {
@@ -173,15 +195,14 @@ public class HomeActivity extends AppCompatActivity
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+        points = new ArrayList<>();
         startButton = findViewById(R.id.start_button);
-        startButton.setOnClickListener(this);
-        stop_button = findViewById(R.id.stop_button);
-        stop_button.setOnClickListener(this);
         time_lapse = findViewById(R.id.time_lapse);
+        stop_button = findViewById(R.id.stop_button);
+        layoutBottomSheet = findViewById(R.id.bottom_sheet);
+        location_button = findViewById(R.id.location_button);
         distanceDifferenceTextView = findViewById(R.id.km);
         pause = findViewById(R.id.pause_button);
-        pause.setOnClickListener(this);
-
     }
 
     private void changeStatusBarColor(int color) {
@@ -225,31 +246,35 @@ public class HomeActivity extends AppCompatActivity
         Double longitude = Double.parseDouble(intent.getStringExtra(Constants.EXTRA_LONGITUDE));
         Log.e(TAG, "LONG" + longitude);
         Log.e(TAG, "LAT" + latitude);
-        Log.e(TAG, "TIME" + intent.getExtras().toString());
         lastLocation = new LatLng(latitude, longitude);
+        points.add(lastLocation);
         animateToPlace(lastLocation);
-        if(mPolyline != null){
-            mPolyline.remove();
-            mMap.clear();
+        PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
+        final long[] totalOfMasRecovered = {0};
+        for (int z = 0; z < points.size(); z++) {
+            LatLng point = points.get(z);
+            options.add(point);
         }
-        mPolyline = mMap.addPolyline(new PolylineOptions()
-                .add(initialLocation, lastLocation)
-                .width(5)
-                .color(Color.RED));
 
-        float[] results = new float[1];
-        Location.distanceBetween(initialLocation.latitude, initialLocation.longitude,
-                lastLocation.latitude, lastLocation.longitude, results);
+        Collections.sort(points, new Comparator<LatLng>() {
+            @Override
+            public int compare(LatLng latLng, LatLng t1) {
+                float[] results = new float[1];
+                Location.distanceBetween(latLng.latitude, latLng.longitude, t1.latitude, t1.longitude, results);
+                totalOfMasRecovered[0] += results[0];
+                return 0;
+            }
+        });
 
-        String distance = String.format("%.2f", results[0]);
-        distanceDifferenceTextView.setText(distance+ " mts");
-        Log.e("HOME ACTIVITY" , "DISTANCE BETWEEN:" + Arrays.toString(results));
+
+        mPolyline = mMap.addPolyline(options);
+        String distance = String.format("%.2f", totalOfMasRecovered[0]) + "mts";
+        distanceDifferenceTextView.setText(distance);
     }
 
     private void animateToPlace(LatLng latLng) {
         mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
-
 
     private void setUpWindow() {
         Window window = this.getWindow();
@@ -341,13 +366,7 @@ public class HomeActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.maps));
-        LatLng myLocation = new LatLng(18.141822, -94.482907);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, Constants.MAX_ZOOM_MAP));
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(Constants.DEFAULT_LOCATION, Constants.MAX_ZOOM_MAP));
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setCompassEnabled(false);
@@ -355,11 +374,7 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
         LocationServices.FusedLocationApi.requestLocationUpdates(mLocationClient, mLocationRequest, this);
-
     }
 
     @Override
@@ -381,23 +396,12 @@ public class HomeActivity extends AppCompatActivity
 
 
     private void showWarningDialogue() {
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setMessage("Estas seguro de cancelar esta carrera?")
-                .setPositiveButton("Terminar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        cancelRun();
-                    }
-                })
-                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                })
-                .setTitle("Cancelar carrera")
-                .create();
-        dialog.show();
+        Tools.showDialogue(this, new OnAcceptListener() {
+            @Override
+            public void onAccept() {
+                cancelRun();
+            }
+        });
     }
 
     @Override
@@ -418,21 +422,31 @@ public class HomeActivity extends AppCompatActivity
                 break;
             }
 
-
             case R.id.pause_button: {
-                Intent intent = new Intent(Constants.STOP_SERVICE_BROADCAST);
-                if (!isPause) {
-                    pause.setText("Continuar");
-                    intent.putExtra(Constants.EXTRAS_STATE_TIME, true);
-                } else {
-                    pause.setText("Pausar");
-                    intent.putExtra(Constants.EXTRAS_STATE_TIME, false);
-                }
+                pauseRace();
+            }
 
-                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-                isPause = !isPause;
+            case R.id.location_button: {
+                if (lastLocation != null) {
+                    animateToPlace(lastLocation);
+                } else {
+                    animateToPlace(initialLocation);
+                }
             }
         }
+    }
+
+    private void pauseRace() {
+        Intent intent = new Intent(Constants.STOP_SERVICE_BROADCAST);
+        if (!isPause) {
+            pause.setText("Continuar");
+            intent.putExtra(Constants.EXTRAS_STATE_TIME, true);
+        } else {
+            pause.setText("Pausar");
+            intent.putExtra(Constants.EXTRAS_STATE_TIME, false);
+        }
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        isPause = !isPause;
     }
 
 
@@ -450,6 +464,5 @@ public class HomeActivity extends AppCompatActivity
         startButton.setVisibility(View.INVISIBLE);
         startService(serviceIntent);
         isServiceStarted = true;
-        //mMap.animateCamera(CameraUpdateFactory.zoomBy(Constants.MAX_ZOOM_MAP));
     }
 }
