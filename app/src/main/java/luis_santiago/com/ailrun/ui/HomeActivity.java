@@ -94,7 +94,6 @@ public class HomeActivity extends AppCompatActivity
     private TextView distanceDifferenceTextView;
     private ArrayList<LatLng> points;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -266,10 +265,10 @@ public class HomeActivity extends AppCompatActivity
             }
         });
 
-
+        long finalTotal = totalOfMasRecovered[0];
         mPolyline = mMap.addPolyline(options);
-        String distance = String.format("%.2f", totalOfMasRecovered[0]) + "mts";
-        distanceDifferenceTextView.setText(distance);
+        //String distance = String.format("%.2f", finalTotal) + "mts";
+        distanceDifferenceTextView.setText(String.valueOf(finalTotal) + "mts");
     }
 
     private void animateToPlace(LatLng latLng) {
@@ -289,6 +288,14 @@ public class HomeActivity extends AppCompatActivity
         FirebaseHelper.getInstance().getUserInfo(new IUser() {
             @Override
             public void onUserLoaded(User user) {
+                if (user.getHeight() == null) {
+                    Intent intent = new Intent(HomeActivity.this, RequestInfoActivity.class);
+                    intent.putExtra(user.getUrlImage() , Constants.EXTRAS_URL_PROFILE_IMAGE);
+                    intent.putExtra(user.getName(), Constants.EXTRAS_PROFILE_NAME);
+                    intent.putExtra(user.getUid() , Constants.EXTRAS_PROFILE_UID);
+                    Log.e("HOME ACTIVITY" , "THE NAME IS" + user.getName());
+                    startActivity(intent);
+                }
                 GlideApp
                         .with(HomeActivity.this)
                         .load(user.getUrlImage())

@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -48,23 +49,46 @@ public class FirebaseHelper {
             boolean isWithSocialMedia = false;
             for (UserInfo user : mAuth.getCurrentUser().getProviderData()) {
                 if (user.getProviderId().equals("facebook.com") || user.getProviderId().equals("google.com")) {
-                    System.out.println("User is signed in with Facebook or google");
                     isWithSocialMedia = true;
                 }
             }
-
             if (isWithSocialMedia) {
-                Log.e("FIREBASE", "PROVIDER : " + mAuth.getCurrentUser().getProviderId());
-                Log.e("FIREBASE", mAuth.getCurrentUser().getDisplayName());
-                Log.e("FIREBASE", mAuth.getCurrentUser().getPhotoUrl().toString());
-                events.onUserLoaded(
-                        new User(
-                                mAuth.getCurrentUser().getDisplayName(),
-                                mAuth.getCurrentUser().getPhotoUrl().toString(),
-                                mAuth.getUid()
-                        )
+                final User user = new User(
+                        mAuth.getCurrentUser().getDisplayName(),
+                        mAuth.getCurrentUser().getPhotoUrl().toString(),
+                        mAuth.getUid()
                 );
+
+                //Search if he has the
+                mDatabaseReference.getReference("users")
+                        .child(mAuth.getCurrentUser().getUid())
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.getValue() != null) {
+                                    long weight = (long) dataSnapshot.child("weight").getValue();
+                                    long height = (long) dataSnapshot.child("height").getValue();
+                                    user.setHeight((int) height);
+                                    user.setWeight((int) weight);
+                                }
+                                events.onUserLoaded(user);
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
             }
         }
     }
+
+    public void updateUserInfo(User user , OnCompleteListener onCompleteListener){
+        mDatabaseReference.getReference("users")
+                .child(mAuth.getCurrentUser().getUid())
+                .updateChildren(user.toHash())
+                .addOnCompleteListener(onCompleteListener);
+    }
+
+
 }
