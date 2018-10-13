@@ -14,6 +14,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.net.Inet4Address;
+
 import luis_santiago.com.ailrun.POJOS.User;
 import luis_santiago.com.ailrun.interfaces.IUser;
 
@@ -68,12 +70,25 @@ public class FirebaseHelper {
                                 if (dataSnapshot.getValue() != null) {
                                     String weight = (String) dataSnapshot.child("weight").getValue();
                                     String height = (String) dataSnapshot.child("height").getValue();
-                                    Log.e("HELPER" , "WEIGTH " + weight);
-                                    Log.e("HELPER" , "HEIGHT " + height);
+                                    String age = (String) dataSnapshot.child("age").getValue();
+                                    String sexOption = (String) dataSnapshot.child("sexOption").getValue();
                                     if(weight != null && height!= null){
                                         user.setHeight(Double.valueOf(height));
                                         user.setWeight(Double.valueOf(weight));
                                     }
+
+                                    if(age != null){
+                                        user.setAge(Integer.valueOf(age));
+                                    }
+
+                                    if(age != null){
+                                        user.setAge(Integer.valueOf(age));
+                                    }
+                                    if(sexOption != null){
+                                        user.setSexOption(Integer.valueOf(sexOption));
+                                    }
+
+
                                 }
                                 events.onUserLoaded(user);
                             }

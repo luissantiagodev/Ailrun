@@ -125,6 +125,7 @@ public class HomeActivity extends AppCompatActivity
     private boolean isPause;
     private TextView distanceDifferenceTextView;
     private ArrayList<LatLng> points;
+    private User mUser;
     private long msPassed = 0;
 
     @Override
@@ -146,6 +147,15 @@ public class HomeActivity extends AppCompatActivity
         if (checkSensorsBody()) {
             setUpGoogleFit();
         }
+
+        FirebaseHelper.getInstance().getUserInfo(new IUser() {
+            @Override
+            public void onUserLoaded(User user) {
+                mUser = user;
+            }
+        });
+
+
         serviceIntent = new Intent(HomeActivity.this, LocationService.class);
     }
 
@@ -329,6 +339,11 @@ public class HomeActivity extends AppCompatActivity
         Log.e(TAG , "RAW SEG PASSED: " + msPassed +" seg");
         Log.e(TAG, "RAW:" + finalTotal + "  MTS: " + df.format(finalTotal) + " mts KM: " + HealthCalculations.metersToKilometers(Double.parseDouble(df.format(finalTotal))) + "KM Speed: " + String.valueOf(HealthCalculations.velocity(finalTotal , msPassed)));
         speed.setText(df.format(HealthCalculations.velocity(finalTotal , msPassed)) + "mts/seg");
+
+        if (mUser != null){
+            float calories = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight() , mUser.getAge() , mUser.getWeight() , mUser.getSexOption() , msPassed , finalTotal);
+            Log.e(TAG , "RAW CALORIES BURNED: " + calories+" Kca");
+        }
         distanceDifferenceTextView.setText(df.format(finalTotal) + " mts");
     }
 

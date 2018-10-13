@@ -109,7 +109,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@android:color/black"
                     android:textStyle="bold"
-                    android:text="CA quemadas"
+                    android:text="Kcal"
                     android:textAlignment="center" />
 
             </LinearLayout>
