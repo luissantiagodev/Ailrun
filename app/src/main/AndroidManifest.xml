@@ -10,9 +10,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/logo_ailrun"
+        android:icon="@drawable/oficial_logo"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/logo_ailrun"
+        android:roundIcon="@drawable/oficial_logo"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <meta-data
@@ -57,7 +57,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.PrepareRunActivity" />
-        <activity android:name=".ui.RequestInfoActivity"></activity>
+        <activity android:name=".ui.RequestInfoActivity" />
+        <activity android:name=".ui.PublishRunActivity"></activity>
     </application>
 
 </manifest>

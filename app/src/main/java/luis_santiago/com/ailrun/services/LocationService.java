@@ -155,5 +155,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         if(countDownTimer != null){
             countDownTimer.cancel();
         }
+
+        Log.e("SERVICE" , "KILLING SERVICE");
     }
 }

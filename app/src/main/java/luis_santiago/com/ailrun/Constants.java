@@ -17,6 +17,8 @@ public class Constants {
     public static final String EXTRAS_PROFILE_NAME = "extras_profile_name";
     public static final String EXTRAS_PROFILE_UID = "extras_profile_uid";
     public static Long MAX_LIMIT_TIME_RUNNING = 9000000000000000000L;
+    public static final int WOMEN_OPTION_SELECTED = 1;
+    public static final int MEN_OPTION_SELECTED = 2;
     public static final String STOP_SERVICE_BROADCAST = "stop_service_broadcast";
     public static String EXTRA_LATITUDE = "extra_latitude";
     public static String EXTRA_LONGITUDE = "extra_longitude";

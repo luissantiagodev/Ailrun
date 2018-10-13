@@ -117,7 +117,9 @@ public class HomeActivity extends AppCompatActivity
                 new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
-                        handleReceiveBroadCast(intent);
+                        if(isServiceStarted){
+                            handleReceiveBroadCast(intent);
+                        }
                     }
                 }, new IntentFilter(LocationService.ACTION_LOCATION_BROADCAST)
         );
@@ -125,7 +127,9 @@ public class HomeActivity extends AppCompatActivity
                 new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
-                        handleReceiveTimeBroadcast(intent);
+                        if(isServiceStarted){
+                            handleReceiveTimeBroadcast(intent);
+                        }
                     }
                 }, new IntentFilter(LocationService.ACTION_TIME_BROADCAST)
         );
@@ -219,12 +223,11 @@ public class HomeActivity extends AppCompatActivity
         startButton.setVisibility(View.VISIBLE);
         isServiceStarted = false;
         changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.colorPrimaryDark));
-        if (mPolyline != null) {
-            mPolyline.remove();
-        }
+        mPolyline.remove();
+        mPolyline = null;
         mMap.clear();
         mMap.animateCamera(CameraUpdateFactory.zoomTo(Constants.MAX_ZOOM_MAP));
-        stopService(new Intent(HomeActivity.this, LocationService.class));
+        stopService(serviceIntent);
     }
 
     private void setUpGoogleClient() {
@@ -248,7 +251,7 @@ public class HomeActivity extends AppCompatActivity
         lastLocation = new LatLng(latitude, longitude);
         points.add(lastLocation);
         animateToPlace(lastLocation);
-        PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
+        PolylineOptions options = new PolylineOptions().width(5).color(R.color.colorPrimary).geodesic(true);
         final long[] totalOfMasRecovered = {0};
         for (int z = 0; z < points.size(); z++) {
             LatLng point = points.get(z);
@@ -272,7 +275,9 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void animateToPlace(LatLng latLng) {
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        if (latLng != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+        }
     }
 
     private void setUpWindow() {
@@ -290,16 +295,16 @@ public class HomeActivity extends AppCompatActivity
             public void onUserLoaded(User user) {
                 if (user.getHeight() == null) {
                     Intent intent = new Intent(HomeActivity.this, RequestInfoActivity.class);
-                    intent.putExtra(user.getUrlImage() , Constants.EXTRAS_URL_PROFILE_IMAGE);
-                    intent.putExtra(user.getName(), Constants.EXTRAS_PROFILE_NAME);
-                    intent.putExtra(user.getUid() , Constants.EXTRAS_PROFILE_UID);
-                    Log.e("HOME ACTIVITY" , "THE NAME IS" + user.getName());
+                    intent.putExtra(Constants.EXTRAS_URL_PROFILE_IMAGE, user.getUrlImage());
+                    intent.putExtra(Constants.EXTRAS_PROFILE_NAME, user.getName());
+                    intent.putExtra(Constants.EXTRAS_PROFILE_UID, user.getUid());
+                    Log.e("HOME ACTIVITY", "THE NAME IS" + user.getName());
                     startActivity(intent);
                 }
                 GlideApp
                         .with(HomeActivity.this)
                         .load(user.getUrlImage())
-                        .placeholder(R.drawable.logo_ailrun)
+                        .placeholder(R.drawable.oficial_logo)
                         .into(circleImageView);
             }
         });

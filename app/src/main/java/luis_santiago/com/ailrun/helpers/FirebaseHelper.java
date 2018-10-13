@@ -66,10 +66,14 @@ public class FirebaseHelper {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 if (dataSnapshot.getValue() != null) {
-                                    long weight = (long) dataSnapshot.child("weight").getValue();
-                                    long height = (long) dataSnapshot.child("height").getValue();
-                                    user.setHeight((int) height);
-                                    user.setWeight((int) weight);
+                                    String weight = (String) dataSnapshot.child("weight").getValue();
+                                    String height = (String) dataSnapshot.child("height").getValue();
+                                    Log.e("HELPER" , "WEIGTH " + weight);
+                                    Log.e("HELPER" , "HEIGHT " + height);
+                                    if(weight != null && height!= null){
+                                        user.setHeight(Double.valueOf(height));
+                                        user.setWeight(Double.valueOf(weight));
+                                    }
                                 }
                                 events.onUserLoaded(user);
                             }
