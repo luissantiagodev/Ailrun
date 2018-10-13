@@ -93,6 +93,4 @@ public class FirebaseHelper {
                 .updateChildren(user.toHash())
                 .addOnCompleteListener(onCompleteListener);
     }
-
-
 }

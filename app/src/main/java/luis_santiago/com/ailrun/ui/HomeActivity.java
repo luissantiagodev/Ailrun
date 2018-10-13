@@ -1,6 +1,7 @@
 package luis_santiago.com.ailrun.ui;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -33,8 +34,28 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessOptions;
+import com.google.android.gms.fitness.SensorsApi;
+import com.google.android.gms.fitness.data.DataPoint;
+import com.google.android.gms.fitness.data.DataSource;
+import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.fitness.data.Value;
+import com.google.android.gms.fitness.request.DataReadRequest;
+import com.google.android.gms.fitness.request.DataSourcesRequest;
+import com.google.android.gms.fitness.request.OnDataPointListener;
+import com.google.android.gms.fitness.request.SensorRequest;
+import com.google.android.gms.fitness.result.DataReadResponse;
+import com.google.android.gms.fitness.result.DataSourcesResult;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -45,12 +66,21 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import luis_santiago.com.ailrun.Constants;
@@ -62,6 +92,7 @@ import luis_santiago.com.ailrun.helpers.GlideApp;
 import luis_santiago.com.ailrun.interfaces.IUser;
 import luis_santiago.com.ailrun.interfaces.OnAcceptListener;
 import luis_santiago.com.ailrun.services.LocationService;
+import luis_santiago.com.ailrun.tools.HealthCalculations;
 
 import static luis_santiago.com.ailrun.Constants.EXTRA_MS_LAPSE;
 
@@ -70,7 +101,7 @@ public class HomeActivity extends AppCompatActivity
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener, View.OnClickListener {
+        LocationListener, View.OnClickListener {
 
     private static final String TAG = HomeActivity.class.getSimpleName();
     private GoogleMap mMap;
@@ -89,10 +120,12 @@ public class HomeActivity extends AppCompatActivity
     private Polyline mPolyline;
     private TextView time_lapse;
     private Intent serviceIntent;
+    private TextView speed;
     private ImageButton location_button;
     private boolean isPause;
     private TextView distanceDifferenceTextView;
     private ArrayList<LatLng> points;
+    private long msPassed = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +142,23 @@ public class HomeActivity extends AppCompatActivity
             listenForBroadcast();
             setUpGoogleClient();
         }
+
+        if (checkSensorsBody()) {
+            setUpGoogleFit();
+        }
         serviceIntent = new Intent(HomeActivity.this, LocationService.class);
+    }
+
+    private void setUpGoogleFit() {
+
+    }
+
+    private boolean checkSensorsBody() {
+        if (ActivityCompat.checkSelfPermission(HomeActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(HomeActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(HomeActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return false;
+        }
+        return true;
     }
 
     private void listenForBroadcast() {
@@ -117,7 +166,7 @@ public class HomeActivity extends AppCompatActivity
                 new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
-                        if(isServiceStarted){
+                        if (isServiceStarted) {
                             handleReceiveBroadCast(intent);
                         }
                     }
@@ -127,7 +176,7 @@ public class HomeActivity extends AppCompatActivity
                 new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
-                        if(isServiceStarted){
+                        if (isServiceStarted) {
                             handleReceiveTimeBroadcast(intent);
                         }
                     }
@@ -141,7 +190,7 @@ public class HomeActivity extends AppCompatActivity
         sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         sheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
-            public void onStateChanged(@NonNull View view, int newState) {
+            public void onStateChanged(View view, int newState) {
                 switch (newState) {
                     case BottomSheetBehavior.STATE_HIDDEN: {
                         Log.e(TAG, "Bottom hidden");
@@ -171,7 +220,6 @@ public class HomeActivity extends AppCompatActivity
 
             @Override
             public void onSlide(@NonNull View view, float v) {
-
             }
         });
     }
@@ -185,7 +233,7 @@ public class HomeActivity extends AppCompatActivity
 
     private void handleReceiveTimeBroadcast(Intent intent) {
         Log.e(TAG, intent.getExtras().toString() + "Time to User Interface");
-        Long msPassed = intent.getExtras().getLong(EXTRA_MS_LAPSE) / 1000;
+        msPassed = intent.getExtras().getLong(EXTRA_MS_LAPSE) / 1000;
         long minutes = msPassed / 60;
         long seconds = msPassed % 60;
         String template = String.format("%02d", minutes) + ":" + String.format("%02d", seconds);
@@ -199,6 +247,7 @@ public class HomeActivity extends AppCompatActivity
             mapFragment.getMapAsync(this);
         }
         points = new ArrayList<>();
+        points.clear();
         startButton = findViewById(R.id.start_button);
         time_lapse = findViewById(R.id.time_lapse);
         stop_button = findViewById(R.id.stop_button);
@@ -206,6 +255,7 @@ public class HomeActivity extends AppCompatActivity
         location_button = findViewById(R.id.location_button);
         distanceDifferenceTextView = findViewById(R.id.km);
         pause = findViewById(R.id.pause_button);
+        speed = findViewById(R.id.speed);
     }
 
     private void changeStatusBarColor(int color) {
@@ -228,20 +278,25 @@ public class HomeActivity extends AppCompatActivity
         mMap.clear();
         mMap.animateCamera(CameraUpdateFactory.zoomTo(Constants.MAX_ZOOM_MAP));
         stopService(serviceIntent);
+        points.clear();
     }
 
     private void setUpGoogleClient() {
         mLocationClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addApi(Fitness.SENSORS_API)
+                .addScope(new Scope(Scopes.FITNESS_BODY_READ))
+                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
                 .build();
         mLocationRequest.setInterval(Constants.LOCATION_INTERVAL_LONG);
         mLocationRequest.setFastestInterval(Constants.LOCATION_INTERVAL_LONG);
-        int priority = LocationRequest.PRIORITY_HIGH_ACCURACY;
+        int priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
         mLocationRequest.setPriority(priority);
         mLocationClient.connect();
     }
+
 
     private void handleReceiveBroadCast(Intent intent) {
         Double latitude = Double.parseDouble(intent.getStringExtra(Constants.EXTRA_LATITUDE));
@@ -252,7 +307,7 @@ public class HomeActivity extends AppCompatActivity
         points.add(lastLocation);
         animateToPlace(lastLocation);
         PolylineOptions options = new PolylineOptions().width(5).color(R.color.colorPrimary).geodesic(true);
-        final long[] totalOfMasRecovered = {0};
+        final double[] totalOfMasRecovered = {0};
         for (int z = 0; z < points.size(); z++) {
             LatLng point = points.get(z);
             options.add(point);
@@ -268,10 +323,13 @@ public class HomeActivity extends AppCompatActivity
             }
         });
 
-        long finalTotal = totalOfMasRecovered[0];
+        double finalTotal = totalOfMasRecovered[0];
         mPolyline = mMap.addPolyline(options);
-        //String distance = String.format("%.2f", finalTotal) + "mts";
-        distanceDifferenceTextView.setText(String.valueOf(finalTotal) + "mts");
+        DecimalFormat df = new DecimalFormat("####0.00");
+        Log.e(TAG , "RAW SEG PASSED: " + msPassed +" seg");
+        Log.e(TAG, "RAW:" + finalTotal + "  MTS: " + df.format(finalTotal) + " mts KM: " + HealthCalculations.metersToKilometers(Double.parseDouble(df.format(finalTotal))) + "KM Speed: " + String.valueOf(HealthCalculations.velocity(finalTotal , msPassed)));
+        speed.setText(df.format(HealthCalculations.velocity(finalTotal , msPassed)) + "mts/seg");
+        distanceDifferenceTextView.setText(df.format(finalTotal) + " mts");
     }
 
     private void animateToPlace(LatLng latLng) {
@@ -298,9 +356,9 @@ public class HomeActivity extends AppCompatActivity
                     intent.putExtra(Constants.EXTRAS_URL_PROFILE_IMAGE, user.getUrlImage());
                     intent.putExtra(Constants.EXTRAS_PROFILE_NAME, user.getName());
                     intent.putExtra(Constants.EXTRAS_PROFILE_UID, user.getUid());
-                    Log.e("HOME ACTIVITY", "THE NAME IS" + user.getName());
                     startActivity(intent);
                 }
+
                 GlideApp
                         .with(HomeActivity.this)
                         .load(user.getUrlImage())
@@ -401,6 +459,7 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.e("HOME ACTIVITY", "I GOT LOCATION FOR FIRST TIME");
         initialLocation = new LatLng(location.getLatitude(), location.getLongitude());
         animateToPlace(initialLocation);
         LocationServices.FusedLocationApi.removeLocationUpdates(mLocationClient, this);
@@ -468,6 +527,8 @@ public class HomeActivity extends AppCompatActivity
         if (requestCode == Constants.CODE_START_RACE) {
             startRun();
         }
+
+
     }
 
     private void startRun() {
@@ -477,4 +538,6 @@ public class HomeActivity extends AppCompatActivity
         startService(serviceIntent);
         isServiceStarted = true;
     }
+
+
 }

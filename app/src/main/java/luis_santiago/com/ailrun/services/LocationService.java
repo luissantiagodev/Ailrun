@@ -1,17 +1,20 @@
 package luis_santiago.com.ailrun.services;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -113,6 +116,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         if (location != null) {
             Log.e(TAG, "LATITUD" + location.getLatitude());
             Log.e(TAG, "Longitud" + location.getLongitude());
+            Log.e(TAG, "SPEED" + location.getSpeed());
             if (!mIsPaused) {
                 sendMessageToUI(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
             }
@@ -136,6 +140,9 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.e(TAG, "Google client connected");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
         LocationServices.FusedLocationApi.requestLocationUpdates(mLocationClient, mLocationRequest, this);
     }
 
@@ -155,7 +162,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
         if(countDownTimer != null){
             countDownTimer.cancel();
         }
-
         Log.e("SERVICE" , "KILLING SERVICE");
+        LocationServices.FusedLocationApi.removeLocationUpdates(mLocationClient, this);
     }
 }
