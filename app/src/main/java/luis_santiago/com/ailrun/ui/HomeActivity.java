@@ -341,7 +341,7 @@ public class HomeActivity extends AppCompatActivity
         speed.setText(df.format(HealthCalculations.velocity(finalTotal , msPassed)) + "mts/seg");
 
         if (mUser != null){
-            float calories = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight() , mUser.getAge() , mUser.getWeight() , mUser.getSexOption() , msPassed , finalTotal);
+            double calories = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight() , mUser.getAge() , mUser.getWeight() , mUser.getSexOption() , msPassed , finalTotal);
             Log.e(TAG , "RAW CALORIES BURNED: " + calories+" Kca");
         }
         distanceDifferenceTextView.setText(df.format(finalTotal) + " mts");

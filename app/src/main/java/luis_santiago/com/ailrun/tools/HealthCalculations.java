@@ -1,5 +1,7 @@
 package luis_santiago.com.ailrun.tools;
 
+import android.util.Log;
+
 import luis_santiago.com.ailrun.Constants;
 
 /**
@@ -16,7 +18,15 @@ public class HealthCalculations {
         return distance / time;
     }
 
-    public static float calculateEnergyExpenditure(Double height, long age, Double weight, int gender, long durationInSeconds, double mts) {
+    public static double calculateEnergyExpenditure(Double height, long age, Double weight, int gender, long durationInSeconds, double mts) {
+
+        Log.e("HEALTH" , "HEIGHT" + height);
+        Log.e("HEALTH" , "AGE" + age);
+        Log.e("HEALTH" , "Weight" + weight);
+        Log.e("HEALTH" , "Gender" + gender);
+        Log.e("HEALTH" , "Duration Seconds" + durationInSeconds);
+        Log.e("HEALTH" , "Mts" + mts);
+
         float harrisBenedictRmR = convertKilocaloriesToMlKmin(harrisBenedictRmr(gender, weight, age, convertMetresToCentimetre(height)), weight);
         double kmTravelled = metersToKilometers(mts);
         float hours = convertSecondsToHours((int) durationInSeconds);
@@ -24,7 +34,8 @@ public class HealthCalculations {
         float metValue = getMetForActivity((float) speedInMph);
         float constant = 3.5f;
         float correctedMets = metValue * (constant / harrisBenedictRmR);
-        return (float) (correctedMets * hours * weight);
+        Log.e("HEALTH" , "RESULT: " + correctedMets * hours * weight);
+        return correctedMets * hours * weight;
     }
 
     private static double convertKilometersToMiles(double kmTravelled) {
