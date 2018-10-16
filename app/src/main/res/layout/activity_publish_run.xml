@@ -1,9 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context=".ui.PublishRunActivity">
 
-</android.support.constraint.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.Toolbar
+            android:layout_width="match_parent"
+            android:background="@color/colorPrimary"
+            android:layout_height="?attr/actionBarSize">
+
+        </android.support.v7.widget.Toolbar>
+
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profilePicture"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="10dp"
+            android:src="@drawable/logo_ailrun" />
+
+
+        <TextView
+            android:id="@+id/name_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginBottom="5dp"
+            android:text="¡Felicidades Luis!"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:text="Esto son los datos que recolectamos"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="80dp"
+                    android:src="@drawable/men" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="15dp"
+                    android:text="8km"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="80dp"
+                    android:src="@drawable/clock" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="15dp"
+                    android:text="8km"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="80dp"
+                    android:src="@drawable/fire" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="15dp"
+                    android:text="8km"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:map="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/map"
+            android:layout_marginTop="20dp"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            tools:context=".ui.HomeActivity" />
+
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_margin="15dp"
+            android:text="Deseo compartir mis datos en la tabla general"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/continueButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="15dp"
+            android:src="@drawable/ic_save_black_24dp" />
+    </RelativeLayout>
+</RelativeLayout>

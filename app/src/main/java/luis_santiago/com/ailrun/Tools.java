@@ -4,6 +4,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.location.LocationServices;
+
 import luis_santiago.com.ailrun.interfaces.OnAcceptListener;
 
 /**
@@ -27,5 +33,16 @@ public class Tools {
                 .setTitle("Cancelar carrera")
                 .create();
         dialog.show();
+    }
+
+    public static GoogleApiClient generateClient (Context context){
+        return new GoogleApiClient.Builder(context)
+                .addApi(LocationServices.API)
+                .addApi(Fitness.SENSORS_API)
+                .addScope(new Scope(Scopes.FITNESS_BODY_READ))
+                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
+                .addConnectionCallbacks((GoogleApiClient.ConnectionCallbacks) context)
+                .addOnConnectionFailedListener((GoogleApiClient.OnConnectionFailedListener) context)
+                .build();
     }
 }

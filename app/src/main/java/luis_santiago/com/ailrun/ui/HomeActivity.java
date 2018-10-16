@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.common.ConnectionResult;
@@ -143,32 +144,13 @@ public class HomeActivity extends AppCompatActivity
             listenForBroadcast();
             setUpGoogleClient();
         }
-
-        if (checkSensorsBody()) {
-            setUpGoogleFit();
-        }
-
         FirebaseHelper.getInstance().getUserInfo(new IUser() {
             @Override
             public void onUserLoaded(User user) {
                 mUser = user;
             }
         });
-
-
         serviceIntent = new Intent(HomeActivity.this, LocationService.class);
-    }
-
-    private void setUpGoogleFit() {
-
-    }
-
-    private boolean checkSensorsBody() {
-        if (ActivityCompat.checkSelfPermission(HomeActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(HomeActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(HomeActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            return false;
-        }
-        return true;
     }
 
     private void listenForBroadcast() {
@@ -283,7 +265,13 @@ public class HomeActivity extends AppCompatActivity
         startButton.setVisibility(View.VISIBLE);
         isServiceStarted = false;
         changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.colorPrimaryDark));
-        mPolyline.remove();
+
+        Intent intent = new Intent(this , PublishRunActivity.class);
+        startActivity(intent);
+        if(mPolyline != null){
+            mPolyline.remove();
+        }
+
         mPolyline = null;
         mMap.clear();
         mMap.animateCamera(CameraUpdateFactory.zoomTo(Constants.MAX_ZOOM_MAP));
@@ -292,17 +280,10 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void setUpGoogleClient() {
-        mLocationClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addApi(Fitness.SENSORS_API)
-                .addScope(new Scope(Scopes.FITNESS_BODY_READ))
-                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
+        mLocationClient = Tools.generateClient(this);
         mLocationRequest.setInterval(Constants.LOCATION_INTERVAL_LONG);
         mLocationRequest.setFastestInterval(Constants.LOCATION_INTERVAL_LONG);
-        int priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
+        int priority = LocationRequest.PRIORITY_HIGH_ACCURACY;
         mLocationRequest.setPriority(priority);
         mLocationClient.connect();
     }
@@ -336,13 +317,13 @@ public class HomeActivity extends AppCompatActivity
         double finalTotal = totalOfMasRecovered[0];
         mPolyline = mMap.addPolyline(options);
         DecimalFormat df = new DecimalFormat("####0.00");
-        Log.e(TAG , "RAW SEG PASSED: " + msPassed +" seg");
-        Log.e(TAG, "RAW:" + finalTotal + "  MTS: " + df.format(finalTotal) + " mts KM: " + HealthCalculations.metersToKilometers(Double.parseDouble(df.format(finalTotal))) + "KM Speed: " + String.valueOf(HealthCalculations.velocity(finalTotal , msPassed)));
-        speed.setText(df.format(HealthCalculations.velocity(finalTotal , msPassed)) + "mts/seg");
+        Log.e(TAG, "RAW SEG PASSED: " + msPassed + " seg");
+        Log.e(TAG, "RAW:" + finalTotal + "  MTS: " + df.format(finalTotal) + " mts KM: " + HealthCalculations.metersToKilometers(Double.parseDouble(df.format(finalTotal))) + "KM Speed: " + String.valueOf(HealthCalculations.velocity(finalTotal, msPassed)));
+        speed.setText(df.format(HealthCalculations.velocity(finalTotal, msPassed)) + "mts/seg");
 
-        if (mUser != null){
-            double calories = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight() , mUser.getAge() , mUser.getWeight() , mUser.getSexOption() , msPassed , finalTotal);
-            Log.e(TAG , "RAW CALORIES BURNED: " + calories+" Kca");
+        if (mUser != null) {
+            double calories = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight(), mUser.getAge(), mUser.getWeight(), mUser.getSexOption(), msPassed, finalTotal);
+            Log.e(TAG, "RAW CALORIES BURNED: " + calories + " Kca");
         }
         distanceDifferenceTextView.setText(df.format(finalTotal) + " mts");
     }
@@ -496,7 +477,11 @@ public class HomeActivity extends AppCompatActivity
         switch (currentItem) {
             case R.id.start_button: {
                 if (!isServiceStarted) {
-                    startActivityForResult(new Intent(HomeActivity.this, PrepareRunActivity.class), Constants.CODE_START_RACE);
+                    if (initialLocation != null) {
+                        startActivityForResult(new Intent(HomeActivity.this, PrepareRunActivity.class), Constants.CODE_START_RACE);
+                    } else {
+                        Toast.makeText(this , "Necesitas una localizacion" , Toast.LENGTH_SHORT).show();
+                    }
                 }
                 break;
             }
@@ -546,13 +531,11 @@ public class HomeActivity extends AppCompatActivity
 
     }
 
-    private void startRun() {
+    private void startRun(){
         changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.red));
         sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         startButton.setVisibility(View.INVISIBLE);
         startService(serviceIntent);
         isServiceStarted = true;
     }
-
-
 }
