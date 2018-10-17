@@ -1,17 +1,13 @@
-package luis_santiago.com.ailrun.ui;
+package luis_santiago.com.ailrun.Activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
-import luis_santiago.com.ailrun.Constants;
 import luis_santiago.com.ailrun.R;
-import luis_santiago.com.ailrun.Tools;
 
 public class PublishRunActivity extends AppCompatActivity implements OnMapReadyCallback {
 

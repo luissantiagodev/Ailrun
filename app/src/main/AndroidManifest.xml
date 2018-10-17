@@ -39,17 +39,17 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.LoginActivity" />
-        <activity android:name=".ui.ElectionLoginActivity" />
+        <activity android:name=".Activities.LoginActivity" />
+        <activity android:name=".Activities.ElectionLoginActivity" />
 
         <service android:name=".services.LocationService" />
 
         <activity
-            android:name=".ui.HomeActivity"
+            android:name=".Activities.HomeActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.Launcher" />
         <activity
-            android:name=".ui.SplashActivity"
+            android:name=".Activities.SplashActivity"
             android:theme="@style/AppTheme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -57,9 +57,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.PrepareRunActivity" />
-        <activity android:name=".ui.RequestInfoActivity" />
-        <activity android:name=".ui.PublishRunActivity"></activity>
+        <activity android:name=".Activities.PrepareRunActivity" />
+        <activity android:name=".Activities.RequestInfoActivity" />
+        <activity android:name=".Activities.PublishRunActivity"></activity>
     </application>
 
 </manifest>

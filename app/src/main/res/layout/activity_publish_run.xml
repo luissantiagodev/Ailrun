@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    tools:context=".ui.PublishRunActivity">
+    tools:context=".Activities.PublishRunActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -141,7 +141,7 @@
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            tools:context=".ui.HomeActivity" />
+            tools:context=".Activities.HomeActivity" />
 
         <CheckBox
             android:layout_width="match_parent"

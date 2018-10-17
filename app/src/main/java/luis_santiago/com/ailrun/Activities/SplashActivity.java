@@ -1,17 +1,14 @@
-package luis_santiago.com.ailrun.ui;
+package luis_santiago.com.ailrun.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import luis_santiago.com.ailrun.R;
-import luis_santiago.com.ailrun.helpers.FirebaseHelper;
 
 /**
  * Created by Luis Santiago on 9/15/18.

@@ -29,12 +29,14 @@ public class FirebaseHelper {
     private FirebaseDatabase mDatabaseReference = FirebaseDatabase.getInstance();
     private String TAG = FirebaseHelper.class.getSimpleName();
 
-    private FirebaseHelper() {
+    private FirebaseHelper(){
+        mDatabaseReference.setPersistenceEnabled(true);
     }
 
     public static FirebaseHelper getInstance() {
         if (firebaseHelper == null) {
-            return new FirebaseHelper();
+            firebaseHelper = new FirebaseHelper();
+            return firebaseHelper;
         } else {
             return firebaseHelper;
         }
@@ -61,6 +63,7 @@ public class FirebaseHelper {
                         mAuth.getUid()
                 );
 
+                user.setEmail(mAuth.getCurrentUser().getEmail());
                 //Search if he has the
                 mDatabaseReference.getReference("users")
                         .child(mAuth.getCurrentUser().getUid())

@@ -1,4 +1,4 @@
-package luis_santiago.com.ailrun.ui;
+package luis_santiago.com.ailrun.Activities;
 
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;

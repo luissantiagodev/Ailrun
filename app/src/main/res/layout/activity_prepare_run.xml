@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:layout_gravity="center"
     android:gravity="center"
-    tools:context=".ui.PrepareRunActivity">
+    tools:context=".Activities.PrepareRunActivity">
 
 
     <TextView

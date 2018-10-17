@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:layout_gravity="center"
     android:gravity="center"
-    tools:context=".ui.ElectionLoginActivity">
+    tools:context=".Activities.ElectionLoginActivity">
 
     <LinearLayout
         android:layout_width="match_parent"

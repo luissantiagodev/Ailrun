@@ -1,4 +1,4 @@
-package luis_santiago.com.ailrun.ui;
+package luis_santiago.com.ailrun.Activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

@@ -9,4 +9,6 @@
     <color name="facebook">#3B5998</color>
     <color name="google">#2e78fc</color>
     <color name="gray">#edeced</color>
+    <color name="darker_gray">#757575</color>
+    <color name="black">#000</color>
 </resources>

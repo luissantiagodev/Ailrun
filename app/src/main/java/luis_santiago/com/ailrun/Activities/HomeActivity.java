@@ -1,14 +1,13 @@
-package luis_santiago.com.ailrun.ui;
+package luis_santiago.com.ailrun.Activities;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,8 +15,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AlertDialog;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.Log;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -35,27 +37,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.fitness.Fitness;
-import com.google.android.gms.fitness.FitnessOptions;
-import com.google.android.gms.fitness.SensorsApi;
-import com.google.android.gms.fitness.data.DataPoint;
-import com.google.android.gms.fitness.data.DataSource;
-import com.google.android.gms.fitness.data.DataType;
-import com.google.android.gms.fitness.data.Field;
-import com.google.android.gms.fitness.data.Value;
-import com.google.android.gms.fitness.request.DataReadRequest;
-import com.google.android.gms.fitness.request.DataSourcesRequest;
-import com.google.android.gms.fitness.request.OnDataPointListener;
-import com.google.android.gms.fitness.request.SensorRequest;
-import com.google.android.gms.fitness.result.DataReadResponse;
-import com.google.android.gms.fitness.result.DataSourcesResult;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -67,33 +54,26 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import luis_santiago.com.ailrun.Constants;
+import luis_santiago.com.ailrun.POJOS.CustomLocation;
 import luis_santiago.com.ailrun.POJOS.User;
 import luis_santiago.com.ailrun.R;
 import luis_santiago.com.ailrun.Tools;
+import luis_santiago.com.ailrun.fragments.HistoryFragment;
+import luis_santiago.com.ailrun.fragments.ProfileFragment;
 import luis_santiago.com.ailrun.helpers.FirebaseHelper;
 import luis_santiago.com.ailrun.helpers.GlideApp;
 import luis_santiago.com.ailrun.interfaces.IUser;
 import luis_santiago.com.ailrun.interfaces.OnAcceptListener;
 import luis_santiago.com.ailrun.services.LocationService;
-import luis_santiago.com.ailrun.tools.HealthCalculations;
+import luis_santiago.com.ailrun.business_logic.HealthCalculations;
 
 import static luis_santiago.com.ailrun.Constants.EXTRA_MS_LAPSE;
 
@@ -125,8 +105,12 @@ public class HomeActivity extends AppCompatActivity
     private ImageButton location_button;
     private boolean isPause;
     private TextView distanceDifferenceTextView;
-    private ArrayList<LatLng> points;
+    private ArrayList<CustomLocation> points;
     private User mUser;
+    private NavigationView navigationView;
+    private SupportMapFragment mapFragment;
+    private CircleImageView profileDrawer;
+    private double caloriesBurned;
     private long msPassed = 0;
 
     @Override
@@ -148,6 +132,8 @@ public class HomeActivity extends AppCompatActivity
             @Override
             public void onUserLoaded(User user) {
                 mUser = user;
+                View header = navigationView.getHeaderView(0);
+                initProfileFromDrawer(header);
             }
         });
         serviceIntent = new Intent(HomeActivity.this, LocationService.class);
@@ -233,11 +219,9 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void init() {
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
+        mapFragment = new SupportMapFragment();
+        mapFragment.getMapAsync(this);
+        setUpFragment(mapFragment);
         points = new ArrayList<>();
         points.clear();
         startButton = findViewById(R.id.start_button);
@@ -248,6 +232,12 @@ public class HomeActivity extends AppCompatActivity
         distanceDifferenceTextView = findViewById(R.id.km);
         pause = findViewById(R.id.pause_button);
         speed = findViewById(R.id.speed);
+        circleImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setUpFragment(new ProfileFragment());
+            }
+        });
     }
 
     private void changeStatusBarColor(int color) {
@@ -265,10 +255,12 @@ public class HomeActivity extends AppCompatActivity
         startButton.setVisibility(View.VISIBLE);
         isServiceStarted = false;
         changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.colorPrimaryDark));
-
-        Intent intent = new Intent(this , PublishRunActivity.class);
+        Intent intent = new Intent(this, PublishRunActivity.class);
+        intent.putParcelableArrayListExtra(Constants.EXTRAS_POINTS, points);
+        intent.putExtra(Constants.EXTRAS_TIME_PASSED, msPassed);
+        intent.putExtra(Constants.EXTRAS_CALORIES_BURNED, caloriesBurned);
         startActivity(intent);
-        if(mPolyline != null){
+        if (mPolyline != null) {
             mPolyline.remove();
         }
 
@@ -295,19 +287,22 @@ public class HomeActivity extends AppCompatActivity
         Log.e(TAG, "LONG" + longitude);
         Log.e(TAG, "LAT" + latitude);
         lastLocation = new LatLng(latitude, longitude);
-        points.add(lastLocation);
+        CustomLocation customLocation = new CustomLocation(latitude, longitude);
+        points.add(customLocation);
         animateToPlace(lastLocation);
         PolylineOptions options = new PolylineOptions().width(5).color(R.color.colorPrimary).geodesic(true);
         final double[] totalOfMasRecovered = {0};
         for (int z = 0; z < points.size(); z++) {
-            LatLng point = points.get(z);
+            LatLng point = new LatLng(points.get(z).getLatng(), points.get(z).getLongt());
             options.add(point);
         }
 
-        Collections.sort(points, new Comparator<LatLng>() {
+        Collections.sort(points, new Comparator<CustomLocation>() {
             @Override
-            public int compare(LatLng latLng, LatLng t1) {
+            public int compare(CustomLocation customLocation, CustomLocation ct1) {
                 float[] results = new float[1];
+                LatLng latLng = new LatLng(customLocation.getLatng(), customLocation.getLongt());
+                LatLng t1 = new LatLng(ct1.getLatng(), ct1.getLongt());
                 Location.distanceBetween(latLng.latitude, latLng.longitude, t1.latitude, t1.longitude, results);
                 totalOfMasRecovered[0] += results[0];
                 return 0;
@@ -319,11 +314,12 @@ public class HomeActivity extends AppCompatActivity
         DecimalFormat df = new DecimalFormat("####0.00");
         Log.e(TAG, "RAW SEG PASSED: " + msPassed + " seg");
         Log.e(TAG, "RAW:" + finalTotal + "  MTS: " + df.format(finalTotal) + " mts KM: " + HealthCalculations.metersToKilometers(Double.parseDouble(df.format(finalTotal))) + "KM Speed: " + String.valueOf(HealthCalculations.velocity(finalTotal, msPassed)));
+
         speed.setText(df.format(HealthCalculations.velocity(finalTotal, msPassed)) + "mts/seg");
 
         if (mUser != null) {
-            double calories = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight(), mUser.getAge(), mUser.getWeight(), mUser.getSexOption(), msPassed, finalTotal);
-            Log.e(TAG, "RAW CALORIES BURNED: " + calories + " Kca");
+            caloriesBurned = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight(), mUser.getAge(), mUser.getWeight(), mUser.getSexOption(), msPassed, finalTotal);
+            Log.e(TAG, "RAW CALORIES BURNED: " + caloriesBurned + " Kca");
         }
         distanceDifferenceTextView.setText(df.format(finalTotal) + " mts");
     }
@@ -359,6 +355,19 @@ public class HomeActivity extends AppCompatActivity
                         .with(HomeActivity.this)
                         .load(user.getUrlImage())
                         .placeholder(R.drawable.oficial_logo)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                circleImageView.setImageDrawable(resource);
+                                profileDrawer.setImageDrawable(resource);
+                                return false;
+                            }
+                        })
                         .into(circleImageView);
             }
         });
@@ -370,13 +379,22 @@ public class HomeActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void initProfileFromDrawer(View header) {
+        TextView name1 = header.findViewById(R.id.user_name);
+        TextView email = header.findViewById(R.id.email);
+        profileDrawer = header.findViewById(R.id.imageView);
+        email.setText(mUser.getEmail());
+        name1.setText(mUser.getName());
     }
 
     private void setToolbar() {
         toolbar = findViewById(R.id.toolbar);
         circleImageView = findViewById(R.id.circle_image_view);
+        setSupportActionBar(toolbar);
         toolbar.setBackgroundColor(Color.TRANSPARENT);
         toolbar.setTitle("AilRun");
         setSupportActionBar(toolbar);
@@ -397,9 +415,10 @@ public class HomeActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
         }
+        //showButtons();
+        setUpFragment(mapFragment);
+        showButtons();
     }
 
 
@@ -407,24 +426,35 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
+        switch (id) {
+            case R.id.main_map: {
+                showButtons();
+                setUpFragment(mapFragment);
+                break;
+            }
+            case R.id.history_runs: {
+                hideButtons();
+                setUpFragment(new HistoryFragment());
+                break;
+            }
 
-        if (id == R.id.nav_camera) {
-
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+            case R.id.settings: {
+                setUpFragment(new ProfileFragment());
+                hideButtons();
+                break;
+            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void setUpFragment(Fragment profileFragment) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.map, profileFragment);
+        ft.addToBackStack(null);
+        ft.commit();
     }
 
 
@@ -433,6 +463,16 @@ public class HomeActivity extends AppCompatActivity
         mMap = googleMap;
         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.maps));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(Constants.DEFAULT_LOCATION, Constants.MAX_ZOOM_MAP));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setCompassEnabled(false);
@@ -440,6 +480,16 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         LocationServices.FusedLocationApi.requestLocationUpdates(mLocationClient, mLocationRequest, this);
     }
 
@@ -455,7 +505,6 @@ public class HomeActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.e("HOME ACTIVITY", "I GOT LOCATION FOR FIRST TIME");
         initialLocation = new LatLng(location.getLatitude(), location.getLongitude());
         animateToPlace(initialLocation);
         LocationServices.FusedLocationApi.removeLocationUpdates(mLocationClient, this);
@@ -480,7 +529,7 @@ public class HomeActivity extends AppCompatActivity
                     if (initialLocation != null) {
                         startActivityForResult(new Intent(HomeActivity.this, PrepareRunActivity.class), Constants.CODE_START_RACE);
                     } else {
-                        Toast.makeText(this , "Necesitas una localizacion" , Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Necesitas una localizacion", Toast.LENGTH_SHORT).show();
                     }
                 }
                 break;
@@ -531,11 +580,30 @@ public class HomeActivity extends AppCompatActivity
 
     }
 
-    private void startRun(){
+    private void startRun() {
         changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.red));
         sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         startButton.setVisibility(View.INVISIBLE);
         startService(serviceIntent);
         isServiceStarted = true;
     }
+
+
+    private void hideButtons() {
+        startButton.setVisibility(View.INVISIBLE);
+        location_button.setVisibility(View.INVISIBLE);
+        circleImageView.setVisibility(View.INVISIBLE);
+        toolbar.setTitleTextColor(getResources().getColor(R.color.white));
+
+    }
+
+    private void showButtons() {
+        startButton.setVisibility(View.VISIBLE);
+        location_button.setVisibility(View.VISIBLE);
+        circleImageView.setVisibility(View.VISIBLE);
+        toolbar.setTitleTextColor(getResources().getColor(R.color.black));
+
+    }
+
+
 }

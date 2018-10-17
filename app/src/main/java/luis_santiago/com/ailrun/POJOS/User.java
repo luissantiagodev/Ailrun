@@ -16,6 +16,16 @@ public class User {
     private Double height;
     private Integer age;
     private Integer sexOption;
+    private String email;
+
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public Integer getAge() {
         return age;
@@ -50,6 +60,7 @@ public class User {
         this.name = name;
         this.urlImage = urlImage;
         this.uid = uid;
+        email = "";
     }
 
 

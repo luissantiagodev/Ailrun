@@ -16,10 +16,15 @@ public class Constants {
     public static final LatLng DEFAULT_LOCATION = new LatLng(18.141822, -94.482907);
     public static final String EXTRAS_PROFILE_NAME = "extras_profile_name";
     public static final String EXTRAS_PROFILE_UID = "extras_profile_uid";
-    public static Long MAX_LIMIT_TIME_RUNNING = 9000000000000000000L;
+    public static Long MAX_LIMIT_TIME_RUNNING = Long.MAX_VALUE;
     public static final int WOMEN_OPTION_SELECTED = 1;
     public static final double MAX_HEART_RATE = 220;
     public static final int MEN_OPTION_SELECTED = 2;
+    public static final String EXTRAS_POINTS= "points_passed";
+    public static final String EXTRAS_CALORIES_BURNED = "calories_burned";
+    public static final String EXTRAS_TIME_PASSED = "time_passed";
+
+
     public static final String STOP_SERVICE_BROADCAST = "stop_service_broadcast";
     public static String EXTRA_LATITUDE = "extra_latitude";
     public static String EXTRA_LONGITUDE = "extra_longitude";
