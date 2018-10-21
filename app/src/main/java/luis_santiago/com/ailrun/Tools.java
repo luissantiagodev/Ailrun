@@ -38,9 +38,6 @@ public class Tools {
     public static GoogleApiClient generateClient (Context context){
         return new GoogleApiClient.Builder(context)
                 .addApi(LocationServices.API)
-                .addApi(Fitness.SENSORS_API)
-                .addScope(new Scope(Scopes.FITNESS_BODY_READ))
-                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
                 .addConnectionCallbacks((GoogleApiClient.ConnectionCallbacks) context)
                 .addOnConnectionFailedListener((GoogleApiClient.OnConnectionFailedListener) context)
                 .build();

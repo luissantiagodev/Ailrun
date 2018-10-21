@@ -87,6 +87,7 @@
                     android:src="@drawable/men" />
 
                 <TextView
+                    android:id="@+id/km_textView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="15dp"
@@ -110,6 +111,7 @@
                     android:src="@drawable/clock" />
 
                 <TextView
+                    android:id="@+id/time_textView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="15dp"
@@ -127,13 +129,13 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="80dp"
                     android:src="@drawable/fire" />
 
                 <TextView
+                    android:id="@+id/kca_textView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="15dp"

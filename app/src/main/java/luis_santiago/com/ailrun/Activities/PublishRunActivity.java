@@ -2,9 +2,12 @@ package luis_santiago.com.ailrun.Activities;
 
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompatExtras;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toolbar;
 
 import com.bumptech.glide.load.DataSource;
@@ -41,6 +44,10 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
     private double secondsPassed = 0;
     private CircleImageView circleImageView;
     private GoogleMap googleMap;
+    private TextView km_textView;
+    private TextView kca_textView;
+    private TextView time_textView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +60,7 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
             kilometersRan = getIntent().getExtras().getDouble(Constants.EXTRAS_DISTANCE_PASSED);
             String urlImage = getIntent().getExtras().getString(Constants.EXTRAS_URL_PROFILE_IMAGE);
             loadProfileImage(urlImage);
+
         }
 
         Log.e("PUBLISH LOCATION", "RESULTS:" + points);
@@ -88,31 +96,46 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         circleImageView = findViewById(R.id.profilePicture);
+        km_textView = findViewById(R.id.km_textView);
+        time_textView = findViewById(R.id.time_textView);
+        kca_textView = findViewById(R.id.kca_textView);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home: {
+                finish();
+                break;
+            }
+        }
+        return true;
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        PolylineOptions options = new PolylineOptions().width(5).color(R.color.colorPrimary).geodesic(true);
-        LatLng initialLocation = new LatLng(points.get(0).getLatng(), points.get(0).getLongt());
-        LatLng lastLocation = new LatLng(points.get(points.size() - 1).getLatng(), points.get(points.size() - 1).getLongt());
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        builder.include(initialLocation);
-        builder.include(lastLocation);
-        LatLngBounds bounds = builder.build();
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 0);
-        googleMap.animateCamera(cameraUpdate);
-        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.icons8_exercise_filled_100);
-        BitmapDescriptor icon2 = BitmapDescriptorFactory.fromResource(R.drawable.icons8_finish_flag_96);
-
-
+        if (points.size() > 2) {
+            PolylineOptions options = new PolylineOptions().width(5).color(R.color.colorPrimary).geodesic(true);
+            LatLng initialLocation = new LatLng(points.get(0).getLatng(), points.get(0).getLongt());
+            LatLng lastLocation = new LatLng(points.get(points.size() - 1).getLatng(), points.get(points.size() - 1).getLongt());
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            builder.include(initialLocation);
+            builder.include(lastLocation);
+            LatLngBounds bounds = builder.build();
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 0);
+            googleMap.animateCamera(cameraUpdate);
+            BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.icons8_exercise_filled_100);
+            BitmapDescriptor icon2 = BitmapDescriptorFactory.fromResource(R.drawable.icons8_finish_flag_96);
 //        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(initialLocation, 17));
-        googleMap.addMarker(new MarkerOptions().position(initialLocation).title("Posición Inicial").icon(icon));
-        googleMap.addMarker(new MarkerOptions().position(lastLocation).title("Posición Final").icon(icon2));
-        for (int z = 0; z < points.size(); z++) {
-            LatLng point = new LatLng(points.get(z).getLatng(), points.get(z).getLongt());
-            options.add(point);
+            googleMap.addMarker(new MarkerOptions().position(initialLocation).title("Posición Inicial").icon(icon));
+            googleMap.addMarker(new MarkerOptions().position(lastLocation).title("Posición Final").icon(icon2));
+            for (int z = 0; z < points.size(); z++) {
+                LatLng point = new LatLng(points.get(z).getLatng(), points.get(z).getLongt());
+                options.add(point);
+            }
+            googleMap.addPolyline(options);
         }
-        googleMap.addPolyline(options);
     }
 }
