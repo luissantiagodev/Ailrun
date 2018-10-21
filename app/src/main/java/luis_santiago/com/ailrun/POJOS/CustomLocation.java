@@ -60,4 +60,12 @@ public class CustomLocation implements Parcelable {
         parcel.writeDouble(Latng);
         parcel.writeDouble(Longt);
     }
+
+    @Override
+    public String toString() {
+        return "CustomLocation{" +
+                "Latng=" + Latng +
+                ", Longt=" + Longt +
+                '}';
+    }
 }
