@@ -260,7 +260,7 @@ public class HomeActivity extends AppCompatActivity
         intent.putParcelableArrayListExtra(Constants.EXTRAS_POINTS, points);
         intent.putExtra(Constants.EXTRAS_TIME_PASSED, msPassed);
         intent.putExtra(Constants.EXTRAS_CALORIES_BURNED, caloriesBurned);
-        intent.putExtra(Constants.EXTRAS_URL_PROFILE_IMAGE , mUser.getUrlImage());
+        intent.putExtra(Constants.EXTRAS_URL_PROFILE_IMAGE, mUser.getUrlImage());
         intent.putExtra(Constants.EXTRAS_DISTANCE_PASSED, totalDistancePassed);
         startActivity(intent);
         if (mPolyline != null) {
@@ -320,7 +320,7 @@ public class HomeActivity extends AppCompatActivity
 
         totalDistancePassed = finalTotal;
         speed.setText(df.format(HealthCalculations.velocity(finalTotal, msPassed)) + "mts/seg");
-        if (mUser != null ) {
+        if (mUser != null) {
             caloriesBurned = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight(), mUser.getAge(), mUser.getWeight(), mUser.getSexOption(), msPassed, finalTotal);
             Log.e(TAG, "RAW CALORIES BURNED: " + caloriesBurned + " Kca");
         }
@@ -429,23 +429,27 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
-        switch (id) {
-            case R.id.main_map: {
-                showButtons();
-                setUpFragment(mapFragment);
-                break;
-            }
-            case R.id.history_runs: {
-                hideButtons();
-                setUpFragment(new HistoryFragment());
-                break;
-            }
+        if (!isServiceStarted) {
+            switch (id) {
+                case R.id.main_map: {
+                    showButtons();
+                    setUpFragment(mapFragment);
+                    break;
+                }
+                case R.id.history_runs: {
+                    hideButtons();
+                    setUpFragment(new HistoryFragment());
+                    break;
+                }
 
-            case R.id.settings: {
-                setUpFragment(new ProfileFragment());
-                hideButtons();
-                break;
+                case R.id.settings: {
+                    setUpFragment(new ProfileFragment());
+                    hideButtons();
+                    break;
+                }
             }
+        } else {
+            showWarningDialogue();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -579,8 +583,6 @@ public class HomeActivity extends AppCompatActivity
         if (requestCode == Constants.CODE_START_RACE) {
             startRun();
         }
-
-
     }
 
     private void startRun() {
@@ -597,7 +599,7 @@ public class HomeActivity extends AppCompatActivity
         location_button.setVisibility(View.INVISIBLE);
         circleImageView.setVisibility(View.INVISIBLE);
         toolbar.setTitleTextColor(getResources().getColor(R.color.white));
-
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
     }
 
     private void showButtons() {
@@ -605,8 +607,10 @@ public class HomeActivity extends AppCompatActivity
         location_button.setVisibility(View.VISIBLE);
         circleImageView.setVisibility(View.VISIBLE);
         toolbar.setTitleTextColor(getResources().getColor(R.color.black));
+        toolbar.setBackgroundColor(Color.TRANSPARENT);
 
     }
+
 
 
 }

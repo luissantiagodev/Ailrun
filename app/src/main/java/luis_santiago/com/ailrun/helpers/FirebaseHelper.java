@@ -1,9 +1,13 @@
 package luis_santiago.com.ailrun.helpers;
 
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -13,7 +17,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
 import java.net.Inet4Address;
 
 import luis_santiago.com.ailrun.POJOS.User;
@@ -28,6 +37,7 @@ public class FirebaseHelper {
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
     private FirebaseDatabase mDatabaseReference = FirebaseDatabase.getInstance();
     private String TAG = FirebaseHelper.class.getSimpleName();
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
 
     private FirebaseHelper(){
         mDatabaseReference.setPersistenceEnabled(true);
@@ -110,5 +120,34 @@ public class FirebaseHelper {
                 .child(mAuth.getCurrentUser().getUid())
                 .updateChildren(user.toHash())
                 .addOnCompleteListener(onCompleteListener);
+    }
+
+    public void uploadImageToFirebase(final String key, Bitmap bitmap, final S3UploadReady dataListener, final OnProgressListener onProgress) {
+        // Create a storage reference from our app
+        StorageReference storageRef = storage.getReferenceFromUrl("gs://react-test-5ae29.appspot.com");
+
+        // Create a reference to 'images/mountains.jpg'
+        StorageReference mountainImagesRef = storageRef.child(key + ".jpg");
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+        UploadTask uploadTask = mountainImagesRef.putBytes(data);
+        uploadTask.addOnProgressListener(onProgress);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Task<Uri> result = taskSnapshot.getMetadata().getReference().getDownloadUrl();
+                result.addOnSuccessListener(uri -> {
+                    String photoStringLink = uri.toString();
+                    dataListener.onImageUpload(photoStringLink);
+                });
+            }
+        });
     }
 }

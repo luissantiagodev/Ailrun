@@ -4,7 +4,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
+    android:layout_marginTop="?attr/actionBarSize"
     tools:context=".fragments.HistoryFragment">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
 
+        <ImageView
+            android:layout_width="wrap_content"
+            android:src="@drawable/men"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_margin="10dp"
+            android:text="¡Aun no has tenido ninguna carrera!"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:text="Inicia tu primera carrera para tener un registro"
+            android:textAlignment="center"
+            android:textSize="12sp"
+            android:textColor="@android:color/black"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
 </FrameLayout>
