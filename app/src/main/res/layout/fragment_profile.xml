@@ -135,12 +135,11 @@
                         android:layout_height="wrap_content" />
 
                     <Button
-                        android:id="@+id/start_button"
+                        android:id="@+id/update_button"
                         style="@style/AppTheme.Button.Accent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
-                        android:layout_margin="10dp"
                         android:text="Actualizar datos" />
                 </LinearLayout>
             </LinearLayout>

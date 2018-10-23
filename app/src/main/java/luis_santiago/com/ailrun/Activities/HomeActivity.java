@@ -34,6 +34,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -110,6 +111,7 @@ public class HomeActivity extends AppCompatActivity
     private NavigationView navigationView;
     private SupportMapFragment mapFragment;
     private CircleImageView profileDrawer;
+    private RelativeLayout container_image;
     private double caloriesBurned;
     private double totalDistancePassed = 0;
     private long msPassed = 0;
@@ -119,10 +121,10 @@ public class HomeActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setToolbar();
+        init();
         setUpDrawer();
         setUpWindow();
         setUpUserImage();
-        init();
         setUpButtons();
         setBottomSheet();
         if (checkLocationAvailable()) {
@@ -233,10 +235,13 @@ public class HomeActivity extends AppCompatActivity
         distanceDifferenceTextView = findViewById(R.id.km);
         pause = findViewById(R.id.pause_button);
         speed = findViewById(R.id.speed);
-        circleImageView.setOnClickListener(new View.OnClickListener() {
+        circleImageView = findViewById(R.id.circle_image_view);
+        container_image = findViewById(R.id.container_image);
+        container_image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 setUpFragment(new ProfileFragment());
+                Toast.makeText(HomeActivity.this , "Clicking" , Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -396,7 +401,7 @@ public class HomeActivity extends AppCompatActivity
 
     private void setToolbar() {
         toolbar = findViewById(R.id.toolbar);
-        circleImageView = findViewById(R.id.circle_image_view);
+
         setSupportActionBar(toolbar);
         toolbar.setBackgroundColor(Color.TRANSPARENT);
         toolbar.setTitle("AilRun");
@@ -537,6 +542,7 @@ public class HomeActivity extends AppCompatActivity
                         startActivityForResult(new Intent(HomeActivity.this, PrepareRunActivity.class), Constants.CODE_START_RACE);
                     } else {
                         Toast.makeText(this, "Necesitas una localizacion", Toast.LENGTH_SHORT).show();
+                        checkLocationAvailable();
                     }
                 }
                 break;
@@ -598,7 +604,7 @@ public class HomeActivity extends AppCompatActivity
         startButton.setVisibility(View.INVISIBLE);
         location_button.setVisibility(View.INVISIBLE);
         circleImageView.setVisibility(View.INVISIBLE);
-        toolbar.setTitleTextColor(getResources().getColor(R.color.white));
+        toolbar.setTitleTextColor(Color.WHITE);
         toolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
     }
 

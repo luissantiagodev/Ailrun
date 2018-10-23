@@ -3,11 +3,7 @@ package luis_santiago.com.ailrun;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
-
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.location.LocationServices;
 
 import luis_santiago.com.ailrun.interfaces.OnAcceptListener;

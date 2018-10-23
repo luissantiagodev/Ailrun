@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
@@ -16,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +27,9 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.storage.OnProgressListener;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -38,6 +43,7 @@ import luis_santiago.com.ailrun.R;
 import luis_santiago.com.ailrun.helpers.FirebaseHelper;
 import luis_santiago.com.ailrun.helpers.GlideApp;
 import luis_santiago.com.ailrun.interfaces.IUser;
+import luis_santiago.com.ailrun.interfaces.OnUploadReady;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -55,6 +61,10 @@ public class ProfileFragment extends Fragment {
     private TextView change_photo;
     private TextView email;
     private Spinner spinner;
+    private Bitmap selectedImage;
+    private Button update_button;
+    private boolean isPhotoChanged = false;
+    private User mUser;
 
 
     public ProfileFragment() {
@@ -77,11 +87,13 @@ public class ProfileFragment extends Fragment {
                 edit_weight.setText(String.valueOf(user.getWeight()));
                 edit_age.setText(String.valueOf(user.getAge()));
                 email.setText(user.getEmail());
-                if(user.getSexOption() == Constants.MEN_OPTION_SELECTED){
+                if (user.getSexOption() == Constants.MEN_OPTION_SELECTED) {
                     spinner.setSelection(0);
-                }else{
+                } else {
                     spinner.setSelection(1);
                 }
+
+                mUser = user;
             }
         });
 
@@ -93,10 +105,55 @@ public class ProfileFragment extends Fragment {
                 startActivityForResult(photoPickerIntent, RESULT_LOAD_IMG);
             }
         });
+
+        update_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mUser != null) {
+                    mUser.setName(edit_name.getText().toString());
+                    mUser.setHeight(Double.valueOf(edit_height.getText().toString()));
+                    mUser.setWeight(Double.valueOf(edit_weight.getText().toString()));
+                    mUser.setAge(Integer.valueOf(edit_age.getText().toString()));
+                    int position = spinner.getSelectedItemPosition();
+                    if (position == 0) {
+                        mUser.setSexOption(Constants.MEN_OPTION_SELECTED);
+                    } else {
+                        mUser.setSexOption(Constants.WOMEN_OPTION_SELECTED);
+                    }
+
+                    if(isPhotoChanged){
+                        FirebaseHelper.getInstance().uploadImageToFirebase(mUser.getUid(), selectedImage, new OnUploadReady() {
+                            @Override
+                            public void onImageUpload(String url) {
+                                mUser.setUrlImage(url);
+                                FirebaseHelper.getInstance().updateUserInfo(mUser, new OnCompleteListener() {
+                                    @Override
+                                    public void onComplete(@NonNull Task task) {
+                                        Toast.makeText(getActivity().getApplicationContext() , "Datos actualizados" , Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }, new OnProgressListener() {
+                            @Override
+                            public void onProgress(Object o) {
+
+                            }
+                        });
+                    }else{
+                        FirebaseHelper.getInstance().updateUserInfo(mUser, new OnCompleteListener() {
+                            @Override
+                            public void onComplete(@NonNull Task task) {
+                                Toast.makeText(getActivity().getApplicationContext() , "Datos actualizados" , Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        });
         return view;
     }
 
-    private void setUpSpinner(){
+    private void setUpSpinner() {
         List<String> list = new ArrayList<>();
         list.add("Hombre");
         list.add("Mujer");
@@ -118,11 +175,11 @@ public class ProfileFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             try {
-                Log.e("ACCOUNT", "GOT IMAGE");
                 if (data.getData() != null) {
+                    isPhotoChanged = true;
                     final Uri imageUri = data.getData();
                     final InputStream imageStream = getActivity().getContentResolver().openInputStream(imageUri);
-                    final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                    selectedImage = BitmapFactory.decodeStream(imageStream);
                     profilePicture.setImageURI(imageUri);
                 }
             } catch (FileNotFoundException e) {
@@ -141,5 +198,6 @@ public class ProfileFragment extends Fragment {
         email = view.findViewById(R.id.email);
         spinner = view.findViewById(R.id.spinner);
         change_photo = view.findViewById(R.id.change_photo);
+        update_button = view.findViewById(R.id.update_button);
     }
 }

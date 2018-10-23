@@ -27,6 +27,7 @@ import java.net.Inet4Address;
 
 import luis_santiago.com.ailrun.POJOS.User;
 import luis_santiago.com.ailrun.interfaces.IUser;
+import luis_santiago.com.ailrun.interfaces.OnUploadReady;
 
 /**
  * Created by Luis Santiago on 9/15/18.
@@ -83,11 +84,17 @@ public class FirebaseHelper {
                                 if (dataSnapshot.getValue() != null) {
                                     String weight = (String) dataSnapshot.child("weight").getValue();
                                     String height = (String) dataSnapshot.child("height").getValue();
+                                    String name = (String) dataSnapshot.child("name").getValue();
+                                    String profileUrl = (String) dataSnapshot.child("profileUrl").getValue();
                                     String age = (String) dataSnapshot.child("age").getValue();
                                     String sexOption = (String) dataSnapshot.child("sexOption").getValue();
                                     if(weight != null && height!= null){
                                         user.setHeight(Double.valueOf(height));
                                         user.setWeight(Double.valueOf(weight));
+                                    }
+
+                                    if(name != null){
+                                        user.setName(name);
                                     }
 
                                     if(age != null){
@@ -101,6 +108,9 @@ public class FirebaseHelper {
                                         user.setSexOption(Integer.valueOf(sexOption));
                                     }
 
+                                    if(profileUrl != null){
+                                        user.setUrlImage(profileUrl);
+                                    }
 
                                 }
                                 events.onUserLoaded(user);
@@ -122,9 +132,9 @@ public class FirebaseHelper {
                 .addOnCompleteListener(onCompleteListener);
     }
 
-    public void uploadImageToFirebase(final String key, Bitmap bitmap, final S3UploadReady dataListener, final OnProgressListener onProgress) {
+    public void uploadImageToFirebase(final String key, Bitmap bitmap, final OnUploadReady dataListener, final OnProgressListener onProgress) {
         // Create a storage reference from our app
-        StorageReference storageRef = storage.getReferenceFromUrl("gs://react-test-5ae29.appspot.com");
+        StorageReference storageRef = storage.getReferenceFromUrl("gs://ailrun-48dd2.appspot.com");
 
         // Create a reference to 'images/mountains.jpg'
         StorageReference mountainImagesRef = storageRef.child(key + ".jpg");
@@ -143,9 +153,12 @@ public class FirebaseHelper {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Task<Uri> result = taskSnapshot.getMetadata().getReference().getDownloadUrl();
-                result.addOnSuccessListener(uri -> {
-                    String photoStringLink = uri.toString();
-                    dataListener.onImageUpload(photoStringLink);
+                result.addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        String photoStringLink = uri.toString();
+                        dataListener.onImageUpload(photoStringLink);
+                    }
                 });
             }
         });
