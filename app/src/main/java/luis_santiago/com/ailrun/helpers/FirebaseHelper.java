@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserInfo;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
@@ -24,7 +25,10 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.net.Inet4Address;
+import java.util.ArrayList;
 
+import luis_santiago.com.ailrun.POJOS.CustomLocation;
+import luis_santiago.com.ailrun.POJOS.Run;
 import luis_santiago.com.ailrun.POJOS.User;
 import luis_santiago.com.ailrun.interfaces.IUser;
 import luis_santiago.com.ailrun.interfaces.OnUploadReady;
@@ -162,5 +166,21 @@ public class FirebaseHelper {
                 });
             }
         });
+    }
+
+    public void registerRunForUser(Run trackRun , OnCompleteListener onCompleteListener){
+        mDatabaseReference.getReference("users")
+                .child(mAuth.getCurrentUser().getUid())
+                .child("history")
+                .push()
+                .setValue(trackRun.toHash())
+                .addOnCompleteListener(onCompleteListener);
+
+        if(trackRun.isPublishedToGlobal()){
+            mDatabaseReference.getReference("global_runs")
+                    .push()
+                    .setValue(trackRun.toHash())
+                    .addOnCompleteListener(onCompleteListener);
+        }
     }
 }

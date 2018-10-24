@@ -1,14 +1,18 @@
 package luis_santiago.com.ailrun.Activities;
 
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompatExtras;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toolbar;
+import android.widget.Toast;
 
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
@@ -25,14 +29,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import luis_santiago.com.ailrun.Constants;
 import luis_santiago.com.ailrun.POJOS.CustomLocation;
+import luis_santiago.com.ailrun.POJOS.Run;
 import luis_santiago.com.ailrun.R;
+import luis_santiago.com.ailrun.helpers.FirebaseHelper;
 import luis_santiago.com.ailrun.helpers.GlideApp;
 
 public class PublishRunActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -41,13 +48,15 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
     private ArrayList<CustomLocation> points = new ArrayList<>();
     private android.support.v7.widget.Toolbar toolbar;
     private double kilometersRan = 0;
-    private double secondsPassed = 0;
+    private double miliSecondsPassed = 0;
+    private double caloriesBurned = 0;
     private CircleImageView circleImageView;
     private GoogleMap googleMap;
     private TextView km_textView;
     private TextView kca_textView;
     private TextView time_textView;
-
+    private ImageButton button_save;
+    private CheckBox checkbox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,14 +65,30 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
         init();
         if (getIntent().getExtras() != null) {
             points = getIntent().getExtras().getParcelableArrayList(Constants.EXTRAS_POINTS);
-            secondsPassed = getIntent().getExtras().getDouble(Constants.EXTRAS_TIME_PASSED);
+            miliSecondsPassed = getIntent().getExtras().getDouble(Constants.EXTRAS_TIME_PASSED);
             kilometersRan = getIntent().getExtras().getDouble(Constants.EXTRAS_DISTANCE_PASSED);
+            caloriesBurned = getIntent().getExtras().getDouble(Constants.EXTRAS_CALORIES_BURNED);
             String urlImage = getIntent().getExtras().getString(Constants.EXTRAS_URL_PROFILE_IMAGE);
             loadProfileImage(urlImage);
-
         }
 
-        Log.e("PUBLISH LOCATION", "RESULTS:" + points);
+        button_save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Run run = new Run();
+                run.setPoints(points);
+                run.setTimeElapsedMs(miliSecondsPassed);
+                run.setKcaBurned(caloriesBurned);
+                run.setPublishedToGlobal(checkbox.isChecked());
+                FirebaseHelper.getInstance().registerRunForUser(run, new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        Toast.makeText(getApplicationContext() , "Datos subidos" , Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                });
+            }
+        });
     }
 
     private void loadProfileImage(String urlImage) {
@@ -99,6 +124,8 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
         km_textView = findViewById(R.id.km_textView);
         time_textView = findViewById(R.id.time_textView);
         kca_textView = findViewById(R.id.kca_textView);
+        button_save = findViewById(R.id.button_save);
+        checkbox = findViewById(R.id.checkbox);
     }
 
 

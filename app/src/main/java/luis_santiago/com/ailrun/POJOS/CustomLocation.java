@@ -3,6 +3,8 @@ package luis_santiago.com.ailrun.POJOS;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.HashMap;
+
 /**
  * Created by Luis Santiago on 10/16/18.
  */
@@ -67,5 +69,12 @@ public class CustomLocation implements Parcelable {
                 "Latng=" + Latng +
                 ", Longt=" + Longt +
                 '}';
+    }
+
+    public HashMap<String, Object> toHash() {
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("Latng", getLatng());
+        hashMap.put("Longt", getLongt());
+        return hashMap;
     }
 }
