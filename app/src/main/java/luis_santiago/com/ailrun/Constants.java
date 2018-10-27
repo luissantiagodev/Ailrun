@@ -17,6 +17,7 @@ public class Constants {
     public static final String EXTRAS_PROFILE_NAME = "extras_profile_name";
     public static final String EXTRAS_PROFILE_UID = "extras_profile_uid";
     public static final String EXTRAS_DISTANCE_PASSED = "extras_distance_passed";
+    public static final String EXTRAS_VELOCITY = "extras_velocity";
     public static Long MAX_LIMIT_TIME_RUNNING = Long.MAX_VALUE;
     public static final int WOMEN_OPTION_SELECTED = 1;
     public static final double MAX_HEART_RATE = 220;

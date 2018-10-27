@@ -52,6 +52,13 @@ public class Tools {
         Run run = new Run();
         String kmRan = (String) dataSnapshot.child("kmRan").getValue();
         String kcaBurned = (String) dataSnapshot.child("kcaBurned").getValue();
+        String timeLapse = (String) dataSnapshot.child("timeElapsed").getValue();
+
+        String date = "";
+        if(dataSnapshot.child("date").getValue() != null){
+            date = (String) dataSnapshot.child("date").getValue();
+        }
+
         ArrayList<CustomLocation> points = new ArrayList<>();
         if (dataSnapshot.child("points").getValue() != null) {
             for (DataSnapshot childValue : dataSnapshot.child("points").getChildren()) {
@@ -65,6 +72,8 @@ public class Tools {
         run.setPoints(points);
         run.setKmRan(Double.parseDouble(kmRan));
         run.setKcaBurned(Double.parseDouble(kcaBurned));
+        run.setDate(date);
+        run.setTimeElapsedMs(timeLapse);
 
         Log.e("TOOLS", "DATA:" + dataSnapshot.getValue().toString());
         return run;

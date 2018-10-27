@@ -52,6 +52,7 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
     private double kilometersRan = 0;
     private double miliSecondsPassed = 0;
     private double caloriesBurned = 0;
+    private double velocity = 0.0;
     private CircleImageView circleImageView;
     private GoogleMap googleMap;
     private TextView km_textView;
@@ -59,6 +60,7 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
     private TextView time_textView;
     private TextView nameTextview;
     private ImageButton button_save;
+    private String template = "0:00:00";
     private CheckBox checkbox;
 
     @Override
@@ -71,22 +73,23 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
             miliSecondsPassed = getIntent().getExtras().getDouble(Constants.EXTRAS_TIME_PASSED);
             kilometersRan = getIntent().getExtras().getDouble(Constants.EXTRAS_DISTANCE_PASSED);
             caloriesBurned = getIntent().getExtras().getDouble(Constants.EXTRAS_CALORIES_BURNED);
+            velocity = getIntent().getExtras().getDouble(Constants.EXTRAS_VELOCITY);
             String urlImage = getIntent().getExtras().getString(Constants.EXTRAS_URL_PROFILE_IMAGE);
             String nameProfile = getIntent().getExtras().getString(Constants.EXTRAS_PROFILE_NAME);
             loadProfileImage(urlImage);
             Log.e(TAG , "MTS RAN:" + kilometersRan);
             Log.e(TAG , "TIME ELAPSE RAN:" + miliSecondsPassed);
 
-
             long minutes = (long) (miliSecondsPassed / 60);
             long seconds = (long) (miliSecondsPassed % 60);
-            String template = String.format("%02d", minutes) + ":" + String.format("%02d", seconds);
+            template = String.format("%02d", minutes) + ":" + String.format("%02d", seconds);
 
             time_textView.setText(template);
             km_textView.setText(kilometersRan +" mts");
             nameTextview.setText("¡Felicidades " + nameProfile +"!");
             kca_textView.setText(caloriesBurned + "kca");
         }
+
 
         button_save.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,8 +99,10 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
                 dialog.show();
                 Run run = new Run();
                 run.setPoints(points);
-                run.setTimeElapsedMs(miliSecondsPassed);
+                run.setTimeElapsedMs(template);
                 run.setKcaBurned(caloriesBurned);
+                run.setKmRan(kilometersRan);
+                run.setVelocity(velocity);
                 run.setPublishedToGlobal(checkbox.isChecked());
                 FirebaseHelper.getInstance().registerRunForUser(run, new OnCompleteListener() {
                     @Override

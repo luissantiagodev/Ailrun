@@ -204,4 +204,8 @@ public class FirebaseHelper {
                     public void onCancelled(@NonNull DatabaseError databaseError) {}
                 });
     }
+
+    public void logOut(){
+        mAuth.signOut();
+    }
 }

@@ -1,6 +1,7 @@
 package luis_santiago.com.ailrun.POJOS;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -10,10 +11,19 @@ public class Run {
 
     private ArrayList<CustomLocation> points;
     private double kmRan;
-    private double timeElapsedMs;
+    private String timeElapsedMs;
     private double velocity;
     private double kcaBurned;
     private boolean isPublishedToGlobal;
+    private String date;
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
 
     public double getKcaBurned() {
         return kcaBurned;
@@ -47,11 +57,11 @@ public class Run {
         this.kmRan = kmRan;
     }
 
-    public double getTimeElapsedMs() {
+    public String getTimeElapsedMs() {
         return timeElapsedMs;
     }
 
-    public void setTimeElapsedMs(double timeElapsedMs) {
+    public void setTimeElapsedMs(String timeElapsedMs) {
         this.timeElapsedMs = timeElapsedMs;
     }
 
@@ -75,6 +85,7 @@ public class Run {
         objectHashMap.put("timeElapsed" , String.valueOf(timeElapsedMs));
         objectHashMap.put("velocity" , String.valueOf(velocity));
         objectHashMap.put("kcaBurned" , String.valueOf(kcaBurned));
+        objectHashMap.put("date" , new Date().toString());
 
         return objectHashMap;
     }

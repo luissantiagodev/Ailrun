@@ -115,6 +115,7 @@ public class HomeActivity extends AppCompatActivity
     private double caloriesBurned;
     private double totalDistancePassed = 0;
     private long msPassed = 0;
+    private Double velocityToShow = 0.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -268,12 +269,12 @@ public class HomeActivity extends AppCompatActivity
         intent.putExtra(Constants.EXTRAS_CALORIES_BURNED, (double) caloriesBurned);
         intent.putExtra(Constants.EXTRAS_URL_PROFILE_IMAGE, mUser.getUrlImage());
         intent.putExtra(Constants.EXTRAS_DISTANCE_PASSED, totalDistancePassed);
+        intent.putExtra(Constants.EXTRAS_VELOCITY , (double) velocityToShow);
         intent.putExtra(Constants.EXTRAS_PROFILE_NAME , mUser.getName());
         startActivity(intent);
         if (mPolyline != null) {
             mPolyline.remove();
         }
-
         mPolyline = null;
         mMap.clear();
         mMap.animateCamera(CameraUpdateFactory.zoomTo(Constants.MAX_ZOOM_MAP));
@@ -327,6 +328,7 @@ public class HomeActivity extends AppCompatActivity
 
         totalDistancePassed = finalTotal;
         speed.setText(df.format(HealthCalculations.velocity(finalTotal, msPassed)) + "mts/seg");
+        velocityToShow = HealthCalculations.velocity(finalTotal, msPassed);
         if (mUser != null) {
             caloriesBurned = HealthCalculations.calculateEnergyExpenditure(mUser.getHeight(), mUser.getAge(), mUser.getWeight(), mUser.getSexOption(), msPassed, finalTotal);
             Log.e(TAG, "RAW CALORIES BURNED: " + caloriesBurned + " Kca");
@@ -462,6 +464,13 @@ public class HomeActivity extends AppCompatActivity
                             "Hey check out my app at: http://luis-santiago.com");
                     sendIntent.setType("text/plain");
                     startActivity(sendIntent);
+                    break;
+                }
+
+                case R.id.log_out : {
+                    FirebaseHelper.getInstance().logOut();
+                    finish();
+                    break;
                 }
             }
         } else {
@@ -508,9 +517,7 @@ public class HomeActivity extends AppCompatActivity
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
 
     @Override
     public void onLocationChanged(Location location) {
@@ -611,9 +618,5 @@ public class HomeActivity extends AppCompatActivity
         circleImageView.setVisibility(View.VISIBLE);
         toolbar.setTitleTextColor(getResources().getColor(R.color.black));
         toolbar.setBackgroundColor(Color.TRANSPARENT);
-
     }
-
-
-
 }
