@@ -71,10 +71,10 @@ public class Run {
         }
 
         objectHashMap.put("points", pointsHash);
-        objectHashMap.put("kmRan" , kmRan);
-        objectHashMap.put("timeElapsed" , timeElapsedMs);
-        objectHashMap.put("velocity" , velocity);
-        objectHashMap.put("kcaBurned" , kcaBurned);
+        objectHashMap.put("kmRan" , String.valueOf(kmRan));
+        objectHashMap.put("timeElapsed" , String.valueOf(timeElapsedMs));
+        objectHashMap.put("velocity" , String.valueOf(velocity));
+        objectHashMap.put("kcaBurned" , String.valueOf(kcaBurned));
 
         return objectHashMap;
     }

@@ -1,5 +1,6 @@
 package luis_santiago.com.ailrun.Activities;
 
+import android.app.ProgressDialog;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -45,6 +46,7 @@ import luis_santiago.com.ailrun.helpers.GlideApp;
 public class PublishRunActivity extends AppCompatActivity implements OnMapReadyCallback {
 
 
+    private static final String TAG = PublishRunActivity.class.getSimpleName();
     private ArrayList<CustomLocation> points = new ArrayList<>();
     private android.support.v7.widget.Toolbar toolbar;
     private double kilometersRan = 0;
@@ -55,6 +57,7 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
     private TextView km_textView;
     private TextView kca_textView;
     private TextView time_textView;
+    private TextView nameTextview;
     private ImageButton button_save;
     private CheckBox checkbox;
 
@@ -69,12 +72,28 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
             kilometersRan = getIntent().getExtras().getDouble(Constants.EXTRAS_DISTANCE_PASSED);
             caloriesBurned = getIntent().getExtras().getDouble(Constants.EXTRAS_CALORIES_BURNED);
             String urlImage = getIntent().getExtras().getString(Constants.EXTRAS_URL_PROFILE_IMAGE);
+            String nameProfile = getIntent().getExtras().getString(Constants.EXTRAS_PROFILE_NAME);
             loadProfileImage(urlImage);
+            Log.e(TAG , "MTS RAN:" + kilometersRan);
+            Log.e(TAG , "TIME ELAPSE RAN:" + miliSecondsPassed);
+
+
+            long minutes = (long) (miliSecondsPassed / 60);
+            long seconds = (long) (miliSecondsPassed % 60);
+            String template = String.format("%02d", minutes) + ":" + String.format("%02d", seconds);
+
+            time_textView.setText(template);
+            km_textView.setText(kilometersRan +" mts");
+            nameTextview.setText("¡Felicidades " + nameProfile +"!");
+            kca_textView.setText(caloriesBurned + "kca");
         }
 
         button_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                final ProgressDialog dialog = ProgressDialog.show(PublishRunActivity.this, "Subiendo datos",
+                        "Cargando. Por favor espere...", true);
+                dialog.show();
                 Run run = new Run();
                 run.setPoints(points);
                 run.setTimeElapsedMs(miliSecondsPassed);
@@ -85,6 +104,7 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
                     public void onComplete(@NonNull Task task) {
                         Toast.makeText(getApplicationContext() , "Datos subidos" , Toast.LENGTH_SHORT).show();
                         finish();
+                        dialog.dismiss();
                     }
                 });
             }
@@ -125,6 +145,7 @@ public class PublishRunActivity extends AppCompatActivity implements OnMapReadyC
         time_textView = findViewById(R.id.time_textView);
         kca_textView = findViewById(R.id.kca_textView);
         button_save = findViewById(R.id.button_save);
+        nameTextview = findViewById(R.id.name_text);
         checkbox = findViewById(R.id.checkbox);
     }
 

@@ -262,11 +262,13 @@ public class HomeActivity extends AppCompatActivity
         isServiceStarted = false;
         changeStatusBarColor(HomeActivity.this.getResources().getColor(R.color.colorPrimaryDark));
         Intent intent = new Intent(this, PublishRunActivity.class);
+        Log.e("HOME ACTIVITY" , "msPassed:" + msPassed);
         intent.putParcelableArrayListExtra(Constants.EXTRAS_POINTS, points);
-        intent.putExtra(Constants.EXTRAS_TIME_PASSED, msPassed);
-        intent.putExtra(Constants.EXTRAS_CALORIES_BURNED, caloriesBurned);
+        intent.putExtra(Constants.EXTRAS_TIME_PASSED, (double) msPassed);
+        intent.putExtra(Constants.EXTRAS_CALORIES_BURNED, (double) caloriesBurned);
         intent.putExtra(Constants.EXTRAS_URL_PROFILE_IMAGE, mUser.getUrlImage());
         intent.putExtra(Constants.EXTRAS_DISTANCE_PASSED, totalDistancePassed);
+        intent.putExtra(Constants.EXTRAS_PROFILE_NAME , mUser.getName());
         startActivity(intent);
         if (mPolyline != null) {
             mPolyline.remove();
@@ -452,6 +454,15 @@ public class HomeActivity extends AppCompatActivity
                     hideButtons();
                     break;
                 }
+
+                case R.id.nav_share : {
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT,
+                            "Hey check out my app at: http://luis-santiago.com");
+                    sendIntent.setType("text/plain");
+                    startActivity(sendIntent);
+                }
             }
         } else {
             showWarningDialogue();
@@ -476,13 +487,6 @@ public class HomeActivity extends AppCompatActivity
         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.maps));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(Constants.DEFAULT_LOCATION, Constants.MAX_ZOOM_MAP));
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         mMap.setMyLocationEnabled(true);
@@ -493,13 +497,6 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mLocationClient, mLocationRequest, this);

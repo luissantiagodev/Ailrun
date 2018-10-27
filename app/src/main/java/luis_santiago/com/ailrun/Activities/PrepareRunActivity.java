@@ -3,6 +3,7 @@ package luis_santiago.com.ailrun.Activities;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -40,7 +41,8 @@ public class PrepareRunActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mCounterTimer.cancel();
-                setUpTimer(currentTime + 10000);
+                currentTime = currentTime + 10000;
+                setUpTimer(currentTime);
             }
         });
     }
@@ -53,15 +55,16 @@ public class PrepareRunActivity extends AppCompatActivity {
     }
 
     private void setUpTimer(int resOfMinutes) {
+        Log.e("TIMER" , "SETTING TIMER WITH"+ resOfMinutes);
         mCounterTimer = new CountDownTimer(resOfMinutes, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                currentTime = (int) millisUntilFinished;
                 int processMade = (int) (millisUntilFinished / 1000);
+                long minutes = processMade / 60;
                 int seconds = processMade % 60;
-                seconds_left.setText(String.valueOf(seconds));
+                String template = String.format("%02d", minutes) + ":" + String.format("%02d", seconds);
+                seconds_left.setText(template);
             }
-
             @Override
             public void onFinish() {
                 close();

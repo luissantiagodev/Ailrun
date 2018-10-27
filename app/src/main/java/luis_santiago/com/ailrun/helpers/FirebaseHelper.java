@@ -30,7 +30,9 @@ import java.util.ArrayList;
 import luis_santiago.com.ailrun.POJOS.CustomLocation;
 import luis_santiago.com.ailrun.POJOS.Run;
 import luis_santiago.com.ailrun.POJOS.User;
+import luis_santiago.com.ailrun.Tools;
 import luis_santiago.com.ailrun.interfaces.IUser;
+import luis_santiago.com.ailrun.interfaces.OnRunsAvailable;
 import luis_santiago.com.ailrun.interfaces.OnUploadReady;
 
 /**
@@ -182,5 +184,24 @@ public class FirebaseHelper {
                     .setValue(trackRun.toHash())
                     .addOnCompleteListener(onCompleteListener);
         }
+    }
+
+
+    public void getListOfRuns(final OnRunsAvailable onRunsAvailable){
+        final ArrayList <Run> list = new ArrayList<>();
+        mDatabaseReference.getReference("users")
+                .child(mAuth.getCurrentUser().getUid())
+                .child("history")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot child : dataSnapshot.getChildren()){
+                            list.add(Tools.parseRun(child));
+                        }
+                        onRunsAvailable.onDataLoaded(list);
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {}
+                });
     }
 }
