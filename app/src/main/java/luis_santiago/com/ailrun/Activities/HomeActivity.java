@@ -17,6 +17,7 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -42,6 +43,9 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -86,36 +90,39 @@ public class HomeActivity extends AppCompatActivity
         LocationListener, View.OnClickListener {
 
     private static final String TAG = HomeActivity.class.getSimpleName();
+
     private GoogleMap mMap;
     private CircleImageView circleImageView;
+    private CircleImageView profileDrawer;
     private Toolbar toolbar;
-    private LocationRequest mLocationRequest = new LocationRequest();
-    private GoogleApiClient mLocationClient;
     private Button startButton;
-    private boolean isServiceStarted = false;
-    private BottomSheetBehavior sheetBehavior;
-    private LinearLayout layoutBottomSheet;
     private Button stop_button;
     private Button pause;
+    private TextView speed;
+    private TextView time_lapse;
+    private TextView distanceDifferenceTextView;
+    private ImageButton location_button;
+    private LocationRequest mLocationRequest = new LocationRequest();
+    private GoogleApiClient mLocationClient;
+    private BottomSheetBehavior sheetBehavior;
+    private LinearLayout layoutBottomSheet;
+    private AdView mAdview;
     private LatLng initialLocation;
     private LatLng lastLocation;
     private Polyline mPolyline;
-    private TextView time_lapse;
     private Intent serviceIntent;
-    private TextView speed;
-    private ImageButton location_button;
-    private boolean isPause;
-    private TextView distanceDifferenceTextView;
     private ArrayList<CustomLocation> points;
     private User mUser;
     private NavigationView navigationView;
     private SupportMapFragment mapFragment;
-    private CircleImageView profileDrawer;
-    private RelativeLayout container_image;
+    private boolean isPause;
+    private boolean isServiceStarted = false;
     private double caloriesBurned;
     private double totalDistancePassed = 0;
     private long msPassed = 0;
     private Double velocityToShow = 0.0;
+    private final int MY_PERMISSIONS_REQUEST_LOCATION = 9;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,15 +139,19 @@ public class HomeActivity extends AppCompatActivity
             listenForBroadcast();
             setUpGoogleClient();
         }
-        FirebaseHelper.getInstance().getUserInfo(new IUser() {
-            @Override
-            public void onUserLoaded(User user) {
-                mUser = user;
-                View header = navigationView.getHeaderView(0);
-                initProfileFromDrawer(header);
-            }
+        FirebaseHelper.getInstance().getUserInfo(user -> {
+            mUser = user;
+            View header = navigationView.getHeaderView(0);
+            initProfileFromDrawer(header);
         });
         serviceIntent = new Intent(HomeActivity.this, LocationService.class);
+        setUpAdd();
+    }
+
+    private void setUpAdd() {
+        MobileAds.initialize(this, "ca-app-pub-5461480863776866/2150225931");
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdview.loadAd(adRequest);
     }
 
     private void listenForBroadcast() {
@@ -233,11 +244,12 @@ public class HomeActivity extends AppCompatActivity
         stop_button = findViewById(R.id.stop_button);
         layoutBottomSheet = findViewById(R.id.bottom_sheet);
         location_button = findViewById(R.id.location_button);
+        mAdview = findViewById(R.id.adView);
         distanceDifferenceTextView = findViewById(R.id.km);
         pause = findViewById(R.id.pause_button);
         speed = findViewById(R.id.speed);
         circleImageView = findViewById(R.id.circle_image_view);
-        container_image = findViewById(R.id.container_image);
+        RelativeLayout container_image = findViewById(R.id.container_image);
         container_image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -308,16 +320,13 @@ public class HomeActivity extends AppCompatActivity
             options.add(point);
         }
 
-        Collections.sort(points, new Comparator<CustomLocation>() {
-            @Override
-            public int compare(CustomLocation customLocation, CustomLocation ct1) {
-                float[] results = new float[1];
-                LatLng latLng = new LatLng(customLocation.getLatng(), customLocation.getLongt());
-                LatLng t1 = new LatLng(ct1.getLatng(), ct1.getLongt());
-                Location.distanceBetween(latLng.latitude, latLng.longitude, t1.latitude, t1.longitude, results);
-                totalOfMasRecovered[0] += results[0];
-                return 0;
-            }
+        Collections.sort(points, (customLocation1, ct1) -> {
+            float[] results = new float[1];
+            LatLng latLng = new LatLng(customLocation1.getLatng(), customLocation1.getLongt());
+            LatLng t1 = new LatLng(ct1.getLatng(), ct1.getLongt());
+            Location.distanceBetween(latLng.latitude, latLng.longitude, t1.latitude, t1.longitude, results);
+            totalOfMasRecovered[0] += results[0];
+            return 0;
         });
 
         double finalTotal = totalOfMasRecovered[0];
@@ -415,7 +424,7 @@ public class HomeActivity extends AppCompatActivity
 
     private boolean checkLocationAvailable() {
         if (ActivityCompat.checkSelfPermission(HomeActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(HomeActivity.this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(HomeActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            ActivityCompat.requestPermissions(HomeActivity.this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
             return false;
         }
         return true;
@@ -592,6 +601,28 @@ public class HomeActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Constants.CODE_START_RACE) {
             startRun();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // location-related task you need to do.
+                    if (ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        listenForBroadcast();
+                        setUpGoogleClient();
+                    }
+                }
+                return;
+            }
+
         }
     }
 
