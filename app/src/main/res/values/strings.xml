@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">Ailrun</string>
     <string name="title_activity_maps">Map</string>
-    <string name="facebook_app_id">248200136036320</string>
-    <string name="fb_login_protocol_scheme">fb248200136036320</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -10,6 +8,8 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
+    <string name="facebook_app_id">248200136036320</string>
+    <string name="fb_login_protocol_scheme">fb248200136036320</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
