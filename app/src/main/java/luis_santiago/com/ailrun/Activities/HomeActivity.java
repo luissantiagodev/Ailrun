@@ -250,12 +250,9 @@ public class HomeActivity extends AppCompatActivity
         speed = findViewById(R.id.speed);
         circleImageView = findViewById(R.id.circle_image_view);
         RelativeLayout container_image = findViewById(R.id.container_image);
-        container_image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setUpFragment(new ProfileFragment());
-                Toast.makeText(HomeActivity.this , "Clicking" , Toast.LENGTH_SHORT).show();
-            }
+        container_image.setOnClickListener(view -> {
+            setUpFragment(new ProfileFragment());
+            Toast.makeText(HomeActivity.this , "Clicking" , Toast.LENGTH_SHORT).show();
         });
     }
 

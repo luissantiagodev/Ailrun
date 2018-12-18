@@ -1,3 +1,6 @@
 <resources>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBDUyuYvKdDaZ0Tp_4w5RdjWl8Dd1p1jo4</string>
 </resources>
+<meta-data
+android:name="com.google.android.geo.API_KEY"
+android:value="@string/google_maps_key" />
